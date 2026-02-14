@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HTML CSS JS Playground – Smart History</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<style>
+/* CSS Reset & Layout */
+*{box-sizing:border-box}
+body{
+  margin:0; padding:10px; font-family:'Segoe UI', sans-serif;
+  height:100vh; display:flex; flex-direction:column; gap:10px; background: #1e1e1e; color: white;
+}
+
+.controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding-bottom: 5px;}
+
+#main-container{ flex:1; display:flex; overflow:hidden; border:1px solid #444; border-radius: 8px; background: #252526;}
+
+/* Editor Styling with Line Numbers */
+.editor{ 
+  width:50%; min-width:220px; display:flex; position:relative; 
+  background: #fff;
+}
+.editor-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+.line-numbers {
+  width: 50px;
+  background: #2d2d2d;
+  color: #858585;
+  text-align: right;
+  padding: 15px 5px;
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-y: hidden;
+  user-select: none;
+  border-right: 1px solid #444;
+}
+.code-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+#code{
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  padding-left: 10px;
+  resize:none; border:none; outline:none;
+  font-family:'Consolas', monospace; font-size:14px;
+  line-height: 1.5;
+  background-color: #ffffff; color: #000000;
+  background-size: cover; background-position: center;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.resizer{ width:6px; cursor:col-resize; background:#333;}
+
+/* History Panel Styling - SIMPLIFIED */
+#history-panel{ 
+  width:60px; background:#2d2d2d; padding:10px; overflow-y:auto; 
+  border-left:1px solid #444; border-right:1px solid #444;
+}
+.hist-item{ 
+  display:flex; justify-content: center; align-items: center;
+  background: #3c3c3c; padding: 8px; margin-bottom: 6px; border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.hist-item:hover { 
+  background: #4a4a4a; 
+  transform: scale(1.05);
+}
+.hist-item.active { 
+  background: #2196f3; 
+  box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+}
+.hist-num {
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Output & Modal */
+#output-container{ flex:1; background:#fff; display:flex; border-radius: 0 8px 8px 0;}
+.preview-stage{ flex:1; padding:0; display: flex; align-items: center; justify-content: center; background: #f0f0f0; position: relative; }
+.device iframe{ width:100%; height:100%; border:none; background: white;}
+.device.desktop { width:100%; height:100%; margin:0; border:none; }
+.device.mobile { width:360px; height:640px; margin:auto; border:2px solid #000; border-radius: 20px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+#preview-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #666; font-size: 16px; display: none; }
+
+/* Auto Run Indicator */
+.auto-run-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4caf50;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 100;
+  display: none;
+}
+
+/* Enhanced Modal */
+.modal{ position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:9999; }
+.hidden{ display:none !important; }
+.modal-card{ background:#252526; color: white; padding:25px; border-radius:15px; width:450px; max-width:95%; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+.cloud-link-item { background: #333; padding: 12px; margin-bottom: 12px; border-radius: 8px; border-left: 4px solid #009688; position: relative;}
+.cloud-link-item a { color: #4fc3f7; text-decoration: none; font-size: 12px; word-break: break-all; display: block; margin-top: 5px;}
+.cloud-note { font-weight: bold; color: #fff; font-size: 14px; }
+.cloud-date { font-size: 10px; color: #888; margin-top: 2px; }
+
+/* All History Modal */
+.history-container { max-height: 400px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
+.history-item { 
+  background: #333; padding: 12px; margin-bottom: 10px; border-radius: 8px; 
+  border-left: 4px solid #2196f3; position: relative;
+}
+.history-local { 
+  border-left-color: #4caf50; /* GREEN for local */
+}
+.history-cloud { 
+  border-left-color: #ffeb3b; /* YELLOW for cloud */
+}
+.history-type { 
+  font-size: 10px; padding: 2px 6px; border-radius: 3px; 
+  background: #555; display: inline-block; margin-bottom: 5px;
+}
+.history-type.local { background: #4caf50; color: white; } /* GREEN for local */
+.history-type.cloud { 
+  background: #ffeb3b; /* YELLOW for cloud */
+  color: #333;
+}
+.history-note { font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 5px; }
+.history-preview { 
+  font-size: 11px; color: #aaa; background: #2a2a2a; 
+  padding: 5px; border-radius: 3px; margin: 5px 0;
+  max-height: 60px; overflow: hidden; text-overflow: ellipsis; 
+}
+.history-date { font-size: 10px; color: #888; margin-top: 2px; }
+
+/* Buttons */
+button{ padding:8px 12px; border:none; cursor:pointer; border-radius:4px; font-weight:bold;}
+#run-btn{ background:#4caf50; color:white}
+#save-btn{ background:#2196f3; color:white}
+#bgPickBtn{ background:#9c27b0; color:white}
+#textPickBtn{ background:#ff9800; color:black}
+#all-history-btn{ background:#795548; color:white}
+#new-btn{ 
+  background:#ff5722; 
+  color:white;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 0;
+}
+#cloud-save-btn{ background:#673ab7; color:white}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  <button id="new-btn" title="New Editor">+</button>
+  <button id="run-btn">Run</button>
+  <button id="save-btn">Save Local History</button>
+  <button id="cloud-save-btn">Cloud Save</button>
+  <button id="all-history-btn">All History</button>
+  <button id="bgPickBtn">Editor BG</button>
+  <button id="textPickBtn">Text Color</button>
+  <button id="desktop-view" style="background:#444; color:white">Desktop</button>
+  <button id="mobile-view" style="background:#444; color:white">Mobile</button>
+  <label style="color: #ccc; font-size: 12px; margin-left: 10px;">
+    <input type="checkbox" id="auto-run"> Auto Run
+  </label>
+  <button id="show-links" style="background:#009688; color:white">Subdomain Links History</button>
+</div>
+
+<div id="main-container">
+  <div class="editor">
+    <div class="editor-wrapper">
+      <div class="line-numbers" id="line-numbers">1</div>
+      <div class="code-wrapper">
+        <textarea id="code" placeholder="Write HTML here..."></textarea>
+        <div class="auto-run-indicator" id="auto-run-indicator">AUTO</div>
+      </div>
+    </div>
+    <div class="resizer" id="resizer"></div>
+  </div>
+
+  <div id="history-panel">
+    <div style="font-size: 11px; text-align:center; margin-bottom:10px; color:#aaa; font-weight:bold;">VERSIONS</div>
+    <div id="hist-list"></div>
+  </div>
+
+  <div id="output-container">
+    <div class="preview-stage">
+      <div id="preview-message">Preview Area</div>
+      <div class="device desktop">
+        <iframe id="output"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="colorModal" class="modal hidden">
+  <div class="modal-card">
+    <h3 id="modalTitle" style="margin-top:0">Settings</h3>
+    
+    <div id="color-picker-section">
+      <div style="margin-bottom:15px">
+        <label style="font-size:12px; color:#aaa">PICK COLOR</label>
+        <input type="color" id="solidPicker" style="width:100%; height:40px; background:none; border:none; cursor:pointer">
+      </div>
+    </div>
+
+    <div id="bg-only-options">
+      <label style="font-size:12px; color:#aaa">GRADIENT PRESETS</label>
+      <select id="gradSelect" style="width:100%; padding:8px; margin-top:5px; background:#333; color:white; border:1px solid #555">
+        <option value="">None</option>
+        <option value="linear-gradient(45deg,#ff512f,#dd2476)">Sunset</option>
+        <option value="linear-gradient(45deg,#00c6ff,#0072ff)">Ocean</option>
+        <option value="linear-gradient(45deg,#12c2e9,#c471ed,#f64f59)">Jodhpur</option>
+      </select>
+      <label style="font-size:12px; color:#aaa; display:block; margin-top:15px">UPLOAD BACKGROUND IMAGE</label>
+      <input type="file" id="bgImage" accept="image/*" style="font-size:11px; margin-top:5px">
+    </div>
+
+    <div id="links-display-section" class="hidden">
+      <div id="links-container" style="max-height: 350px; overflow-y: auto; margin-top: 10px; padding-right:5px;"></div>
+    </div>
+
+    <!-- All History Section -->
+    <div id="all-history-section" class="hidden">
+      <div class="history-container" id="all-history-container"></div>
+    </div>
+
+    <button onclick="closeModal()" style="background:#f44336; color:white; width:100%; margin-top:20px">Close</button>
+  </div>
+</div>
+
+<script>
+const codeInput = document.getElementById("code");
+const lineNumbers = document.getElementById("line-numbers");
+const output = document.getElementById("output");
+const histList = document.getElementById("hist-list");
+const modal = document.getElementById("colorModal");
+const bgOptions = document.getElementById("bg-only-options");
+const colorPickerSection = document.getElementById("color-picker-section");
+const linksDisplaySection = document.getElementById("links-display-section");
+const allHistorySection = document.getElementById("all-history-section");
+const linksContainer = document.getElementById("links-container");
+const allHistoryContainer = document.getElementById("all-history-container");
+const device = document.querySelector('.device');
+const autoRunCheckbox = document.getElementById("auto-run");
+const autoRunIndicator = document.getElementById("auto-run-indicator");
+
+let targetMode = "bg";
+const STORAGE_KEY = "my_code_history";
+const CLOUD_LINKS_KEY = "cloud_links";
+let currentVersion = null;
+let autoRunTimeout = null;
+const path = location.pathname.slice(1);
+const isViewMode = !!path;
+
+// --- LINE NUMBERS LOGIC ---
+function updateLineNumbers() {
+  const lines = codeInput.value.split('\n').length;
+  let numbers = '';
+  for (let i = 1; i <= lines; i++) {
+    numbers += i + '<br>';
+  }
+  lineNumbers.innerHTML = numbers;
+  
+  // Sync scroll between textarea and line numbers
+  lineNumbers.scrollTop = codeInput.scrollTop;
+}
+
+// Sync scroll
+codeInput.addEventListener('scroll', () => {
+  lineNumbers.scrollTop = codeInput.scrollTop;
+});
+
+// --- AUTO RUN LOGIC ---
+function updateAutoRunIndicator() {
+  if (autoRunCheckbox.checked) {
+    autoRunIndicator.style.display = 'block';
+  } else {
+    autoRunIndicator.style.display = 'none';
+  }
+}
+
+function autoRunCode() {
+  if (autoRunCheckbox.checked) {
+    if (autoRunTimeout) {
+      clearTimeout(autoRunTimeout);
+    }
+    
+    autoRunTimeout = setTimeout(() => {
+      runCode();
+    }, 500);
+  }
+}
+
+function runCode() { 
+  document.getElementById("preview-message").style.display = 'none';
+  output.srcdoc = codeInput.value; 
+}
+
+// --- INITIALIZATION ---
+if (isViewMode) {
+  document.querySelector('.controls').style.display = 'none';
+  document.querySelector('.editor').style.display = 'none';
+  document.getElementById('history-panel').style.display = 'none';
+  document.body.style.padding = '0';
+  document.getElementById('output-container').style.borderRadius = '0';
+}
+
+// --- HISTORY LOGIC ---
+function getHistory() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+
+function renderHistory() {
+  const history = getHistory();
+  histList.innerHTML = "";
+  
+  if (history.length === 0) {
+    histList.innerHTML = '<div style="color:#666; font-size:11px; text-align:center;">No versions</div>';
+    return;
+  }
+  
+  history.forEach((code, index) => {
+    const item = document.createElement("div");
+    item.className = `hist-item ${currentVersion === index ? 'active' : ''}`;
+    
+    const numSpan = document.createElement("div");
+    numSpan.className = "hist-num";
+    numSpan.textContent = index + 1;
+    
+    item.appendChild(numSpan);
+    
+    item.onclick = () => {
+      codeInput.value = code;
+      runCode();
+      updateLineNumbers(); // Update line numbers when loading code
+      document.querySelectorAll('.hist-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      currentVersion = index;
+    };
+    
+    histList.appendChild(item);
+  });
+}
+
+// --- NEW EDITOR FUNCTION ---
+function newEditor() {
+  if (codeInput.value.trim() !== "" && !confirm("Current code will be cleared. Create new editor?")) {
+    return;
+  }
+  
+  codeInput.value = "";
+  codeInput.style.backgroundColor = "#ffffff";
+  codeInput.style.backgroundImage = "none";
+  codeInput.style.color = "#000000";
+  output.srcdoc = "";
+  document.getElementById("preview-message").style.display = 'block';
+  
+  currentVersion = null;
+  renderHistory();
+  updateLineNumbers(); // Update line numbers
+  
+  codeInput.focus();
+}
+
+// --- LOCAL SAVE ---
+function saveLocalHistory() {
+  const code = codeInput.value;
+  if(!code.trim()) {
+    alert("Please write some code first!");
+    return;
+  }
+  
+  const h = getHistory(); 
+  h.push(code);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(h));
+  renderHistory();
+  
+  currentVersion = h.length - 1;
+  setTimeout(() => {
+    renderHistory();
+  }, 100);
+  
+  alert("✅ Local version saved as Version " + h.length);
+}
+
+// --- CLOUD SAVE ---
+function saveToCloud() {
+  const code = codeInput.value;
+  if (!code.trim()) {
+    alert("Please write some code first!");
+    return;
+  }
+  
+  const note = prompt("Cloud save ke liye note likhein:", `My Project ${new Date().toLocaleDateString()}`);
+  if (note === null || note.trim() === "") return;
+
+  const key = CryptoJS.lib.WordArray.random(32 / 8).toString();
+  const encrypted = CryptoJS.AES.encrypt(code, key).toString();
+  
+  fetch('/api/save', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({encrypted})
+  }).then(res => res.json()).then(data => {
+    const id = data.id;
+    const link = `${location.origin}/${id}#key=${key}`;
+    const timestamp = new Date().toLocaleString();
+    
+    let links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
+    links.unshift({id, link, note: note || "Untitled", date: timestamp});
+    localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(links));
+    alert("✅ Cloud Link Saved Successfully!\n\nNote: " + note);
+  }).catch(err => {
+    const id = 'demo_' + Date.now();
+    const link = `${location.origin}/?demo=${id}#key=${key}`;
+    const timestamp = new Date().toLocaleString();
+    
+    let links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
+    links.unshift({id, link, note: note || "Untitled", date: timestamp});
+    localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(links));
+    alert("✅ Cloud Link Saved (Demo Mode)!\n\nNote: " + note + "\n\nLink for demo: " + link);
+  });
+}
+
+// --- RENDER ALL HISTORY (LOCAL + CLOUD) ---
+function renderAllHistory() {
+  const localHistory = getHistory();
+  const cloudLinks = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
+  allHistoryContainer.innerHTML = "";
+
+  if (localHistory.length === 0 && cloudLinks.length === 0) {
+    allHistoryContainer.innerHTML = "<p style='color:#aaa; text-align:center;'>No history found.</p>";
+    return;
+  }
+
+  const allItems = [];
+
+  // Add local history items (GREEN)
+  localHistory.forEach((code, index) => {
+    const note = `Version ${index + 1}`;
+    const preview = code.substring(0, 100) + (code.length > 100 ? "..." : "");
+    allItems.push({
+      type: 'local',
+      id: index,
+      note: note,
+      preview: preview,
+      date: "Not dated",
+      code: code
+    });
+  });
+
+  // Add cloud history items (YELLOW)
+  cloudLinks.forEach((link, index) => {
+    allItems.push({
+      type: 'cloud',
+      id: index,
+      note: link.note,
+      preview: "Cloud Saved Version",
+      date: link.date,
+      link: link.link
+    });
+  });
+
+  // Sort by date (newest first)
+  allItems.sort((a, b) => {
+    if (a.date === "Not dated" && b.date === "Not dated") return 0;
+    if (a.date === "Not dated") return 1;
+    if (b.date === "Not dated") return -1;
+    return new Date(b.date) - new Date(a.date);
+  });
+
+  // Render all items
+  allItems.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = `history-item ${item.type === 'local' ? 'history-local' : 'history-cloud'}`;
+    
+    let actionsHTML = "";
+    if (item.type === 'local') {
+      actionsHTML = `
+        <button onclick="loadCodeFromHistory('${encodeURIComponent(item.code)}')" style="background:#2196f3; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Load</button>
+        <button onclick="deleteLocalHistory(${item.id})" style="background:#f44336; color:white; font-size:10px; padding:3px 8px;">Delete</button>
+      `;
+    } else {
+      actionsHTML = `
+        <button onclick="openLink('${item.link}')" style="background:#2196f3; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Open Link</button>
+        <button onclick="copyLink('${item.link}')" style="background:#009688; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Copy Link</button>
+        <button onclick="deleteCloudHistory(${item.id})" style="background:#f44336; color:white; font-size:10px; padding:3px 8px;">Delete</button>
+      `;
+    }
+
+    div.innerHTML = `
+      <div class="history-type ${item.type}">${item.type.toUpperCase()}</div>
+      <div class="history-note">${item.note}</div>
+      <div class="history-preview">${item.preview}</div>
+      <div class="history-date">📅 ${item.date}</div>
+      <div style="margin-top:8px; text-align:right;">
+        ${actionsHTML}
+      </div>
+    `;
+    allHistoryContainer.appendChild(div);
+  });
+}
+
+// --- NEW: Open Link Function ---
+window.openLink = (link) => {
+  window.open(link, '_blank');
+};
+
+// --- ALL HISTORY FUNCTIONS ---
+window.loadCodeFromHistory = (encodedCode) => {
+  const code = decodeURIComponent(encodedCode);
+  codeInput.value = code;
+  runCode();
+  updateLineNumbers(); // Update line numbers
+  closeModal();
+  
+  const history = getHistory();
+  const index = history.indexOf(code);
+  if (index !== -1) {
+    currentVersion = index;
+    renderHistory();
+  }
+  
+  alert("Code loaded successfully!");
+};
+
+window.copyLink = (link) => {
+  navigator.clipboard.writeText(link).then(() => {
+    alert("Link copied to clipboard!");
+  });
+};
+
+window.deleteLocalHistory = (index) => {
+  const h = getHistory();
+  h.splice(index, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(h));
+  renderHistory();
+  renderAllHistory();
+};
+
+window.deleteCloudHistory = (index) => {
+  let links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY));
+  links.splice(index, 1);
+  localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(links));
+  renderCloudLinks();
+  renderAllHistory();
+};
+
+// --- CLOUD LINKS ---
+function renderCloudLinks() {
+  const links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
+  linksContainer.innerHTML = links.length === 0 ? "<p style='color:#aaa;'>No links yet.</p>" : "";
+  
+  links.forEach((l, index) => {
+    const div = document.createElement("div");
+    div.className = "cloud-link-item";
+    div.innerHTML = `
+      <div class="cloud-note">${l.note}</div>
+      <div class="cloud-date">📅 Created: ${l.date}</div>
+      <button onclick="openLink('${l.link}')" style="background:#2196f3; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Open Link</button>
+      <button onclick="copyLink('${l.link}')" style="background:#009688; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Copy Link</button>
+      <button onclick="delCloud(${index})" style="background:#f44336; color:white; font-size:10px; padding:3px 8px;">Delete</button>
+    `;
+    linksContainer.appendChild(div);
+  });
+}
+
+window.delCloud = (i) => {
+  let l = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY));
+  l.splice(i, 1);
+  localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(l));
+  renderCloudLinks();
+  renderAllHistory();
+};
+
+// --- UI CONTROLS ---
+function openModal(mode) {
+  targetMode = mode;
+  modal.classList.remove("hidden");
+  colorPickerSection.classList.remove("hidden");
+  bgOptions.classList.add("hidden");
+  linksDisplaySection.classList.add("hidden");
+  allHistorySection.classList.add("hidden");
+
+  if (mode === 'bg') {
+    document.getElementById("modalTitle").innerText = "Editor Style";
+    bgOptions.classList.remove("hidden");
+  } else if (mode === 'links') {
+    document.getElementById("modalTitle").innerText = "My Subdomain History";
+    colorPickerSection.classList.add("hidden");
+    linksDisplaySection.classList.remove("hidden");
+    renderCloudLinks();
+  } else if (mode === 'all-history') {
+    document.getElementById("modalTitle").innerText = "All History (Local + Cloud)";
+    colorPickerSection.classList.add("hidden");
+    allHistorySection.classList.remove("hidden");
+    renderAllHistory();
+  }
+}
+
+function closeModal() { modal.classList.add("hidden"); }
+
+// Event Listeners
+if (!isViewMode) {
+  // New Editor Button
+  document.getElementById("new-btn").onclick = newEditor;
+  
+  // Auto Run checkbox change
+  autoRunCheckbox.addEventListener('change', function() {
+    updateAutoRunIndicator();
+    if (this.checked) {
+      runCode();
+    }
+  });
+  
+  // Code input listener for auto run and line numbers
+  codeInput.addEventListener('input', function() {
+    autoRunCode();
+    updateLineNumbers();
+  });
+  
+  // Initialize auto run indicator and line numbers
+  updateAutoRunIndicator();
+  updateLineNumbers();
+  
+  // All History Button
+  document.getElementById("all-history-btn").onclick = () => openModal('all-history');
+  
+  // Save Local History
+  document.getElementById("save-btn").onclick = saveLocalHistory;
+  
+  // Cloud Save Button
+  document.getElementById("cloud-save-btn").onclick = saveToCloud;
+
+  // Run Button
+  document.getElementById("run-btn").onclick = runCode;
+  
+  // Other buttons
+  document.getElementById("bgPickBtn").onclick = () => openModal('bg');
+  document.getElementById("textPickBtn").onclick = () => openModal('text');
+  document.getElementById("show-links").onclick = () => openModal('links');
+
+  document.getElementById("solidPicker").oninput = (e) => {
+    if(targetMode === "bg") {
+      codeInput.style.backgroundImage = "none";
+      codeInput.style.backgroundColor = e.target.value;
+      lineNumbers.style.backgroundColor = e.target.value;
+    } else { 
+      codeInput.style.color = e.target.value; 
+    }
+  };
+
+  document.getElementById("gradSelect").onchange = (e) => {
+    codeInput.style.backgroundImage = e.target.value;
+    codeInput.style.backgroundColor = "transparent";
+    lineNumbers.style.backgroundImage = e.target.value;
+    lineNumbers.style.backgroundColor = "transparent";
+  };
+
+  document.getElementById("bgImage").onchange = (e) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      codeInput.style.backgroundImage = `url('${ev.target.result}')`;
+      lineNumbers.style.backgroundImage = `url('${ev.target.result}')`;
+    };
+    reader.readAsDataURL(e.target.files[0]);
+  };
+
+  document.getElementById("desktop-view").onclick = () => {
+    device.classList.replace('mobile', 'desktop');
+  };
+  document.getElementById("mobile-view").onclick = () => {
+    device.classList.replace('desktop', 'mobile');
+  };
+
+  // Resizer
+  let isDragging = false;
+  document.getElementById("resizer").onmousedown = () => isDragging = true;
+  document.onmousemove = (e) => {
+    if (isDragging) document.querySelector(".editor").style.width = e.clientX + "px";
+  };
+  document.onmouseup = () => isDragging = false;
+}
+
+window.onload = () => {
+  renderHistory();
+  updateLineNumbers(); // Initialize line numbers
+  
+  if (path) {
+    fetch(`/api/get/${path}`).then(r => r.json()).then(d => {
+      const key = location.hash.substring(5);
+      const dec = CryptoJS.AES.decrypt(d.encrypted, key).toString(CryptoJS.enc.Utf8);
+      codeInput.value = dec;
+      runCode();
+      updateLineNumbers();
+    });
+  } else {
+    document.getElementById("preview-message").style.display = 'block';
+  }
+};
+</script>
+</body>
+</html>
