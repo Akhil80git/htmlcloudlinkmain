@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 Pro Projects (CSS vs Tailwind)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .editor-area { font-family: 'Courier New', Courier, monospace; line-height: 1.5; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white h-screen flex overflow-hidden selection:bg-blue-500 selection:text-white">
+
+    <div class="w-1/5 min-w-[250px] bg-slate-800 border-r border-slate-700 flex flex-col">
+        <div class="p-4 border-b border-slate-700 bg-slate-900">
+            <h1 class="text-xl font-bold text-emerald-400">10 Pro Projects</h1>
+            <p class="text-xs text-slate-400 mt-1">Select a project to build</p>
+        </div>
+        <div id="project-list" class="flex-1 overflow-y-auto">
+            </div>
+    </div>
+
+    <div class="w-2/5 flex flex-col border-r border-slate-700 bg-slate-900 transition-all duration-300">
+        
+        <div id="html-container" class="h-1/2 flex flex-col border-b border-slate-700 transition-all duration-300">
+            <div class="px-4 py-2 bg-slate-800 text-xs font-bold text-orange-400 flex justify-between items-center select-none">
+                <span id="editor-label">HTML Structure</span>
+                
+                <div class="flex items-center gap-2">
+                    
+                    <button id="tailwind-toggle" onclick="toggleTailwindMode()" disabled class="flex items-center gap-2 bg-slate-800 border border-slate-700 text-slate-500 px-3 py-1 rounded transition-colors opacity-50 cursor-not-allowed group" title="Convert to Tailwind (Requires Mix Mode)">
+                        <span class="text-[10px] font-bold tracking-wider">TAILWIND</span>
+                        <div class="w-8 h-4 bg-slate-900 rounded-full relative border border-slate-600">
+                            <div id="tw-dot" class="w-2 h-2 bg-slate-500 rounded-full absolute top-1 left-1 transition-all"></div>
+                        </div>
+                    </button>
+
+                    <div class="h-4 w-[1px] bg-slate-600 mx-1"></div>
+
+                    <button id="mix-toggle" onclick="toggleMixMode()" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded transition-colors" title="Merge HTML & CSS">
+                        <div class="w-8 h-4 bg-slate-900 rounded-full relative border border-slate-600">
+                            <div id="mix-dot" class="w-2 h-2 bg-slate-400 rounded-full absolute top-1 left-1 transition-all"></div>
+                        </div>
+                        <span class="text-[10px] uppercase tracking-wider">Mix Code</span>
+                    </button>
+                </div>
+            </div>
+            <textarea id="html-code" class="editor-area flex-1 bg-[#0f172a] text-gray-300 p-4 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-blue-500" spellcheck="false"></textarea>
+        </div>
+
+        <div id="css-container" class="h-1/2 flex flex-col transition-all duration-300">
+            <div class="px-4 py-2 bg-slate-800 text-xs font-bold text-sky-400 flex justify-between items-center select-none">
+                <span>CSS Styling</span>
+                <span class="bg-slate-700 text-slate-300 px-2 py-0.5 rounded">style.css</span>
+            </div>
+            <textarea id="css-code" class="editor-area flex-1 bg-[#0f172a] text-gray-300 p-4 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-sky-500" spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <div class="w-2/5 flex flex-col bg-white">
+        <div class="px-4 py-2 bg-gray-100 text-gray-600 text-xs font-bold border-b border-gray-300 flex justify-between items-center select-none">
+            <span>Live Output</span>
+            <span class="text-green-600 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Auto-Run
+            </span>
+        </div>
+        <iframe id="preview-frame" class="flex-1 w-full border-none bg-white"></iframe>
+    </div>
+
+    <script>
+        // Project Data with Standard CSS AND Tailwind Versions
+        const projects = [
+            {
+                id: 1,
+                title: "Glassmorphism Login",
+                html: `<div class="background">
+    <div class="shape"></div>
+    <div class="shape"></div>
+</div>
+<form>
+    <h3>Login Here</h3>
+    <label for="username">Username</label>
+    <input type="text" placeholder="Email or Phone" id="username">
+    <label for="password">Password</label>
+    <input type="password" placeholder="Password" id="password">
+    <button>Log In</button>
+</form>`,
+                css: `*, *:before, *:after{ box-sizing: border-box; }
+body { background-color: #080710; font-family: 'Poppins',sans-serif; overflow: hidden; }
+.background { width: 430px; height: 520px; position: absolute; transform: translate(-50%,-50%); left: 50%; top: 50%; }
+.shape { height: 200px; width: 200px; position: absolute; border-radius: 50%; }
+.shape:first-child { background: linear-gradient(#1845ad, #23a2f6); left: -80px; top: -80px; }
+.shape:last-child { background: linear-gradient(to right, #ff512f, #f09819); right: -30px; bottom: -80px; }
+form { height: 520px; width: 400px; background-color: rgba(255,255,255,0.13); position: absolute; transform: translate(-50%,-50%); top: 50%; left: 50%; border-radius: 10px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 0 40px rgba(8,7,16,0.6); padding: 50px 35px; }
+form * { color: #ffffff; letter-spacing: 0.5px; outline: none; border: none; }
+form h3 { font-size: 32px; font-weight: 500; line-height: 42px; text-align: center; }
+label { display: block; margin-top: 30px; font-size: 16px; font-weight: 500; }
+input { display: block; height: 50px; width: 100%; background-color: rgba(255,255,255,0.07); border-radius: 3px; padding: 0 10px; margin-top: 8px; font-size: 14px; font-weight: 300; }
+button { margin-top: 50px; width: 100%; background-color: #ffffff; color: #080710; padding: 15px 0; font-size: 18px; font-weight: 600; border-radius: 5px; cursor: pointer; }`,
+                tailwind_html: `<div class="relative w-[430px] h-[520px]">
+    <div class="absolute h-[200px] w-[200px] rounded-full bg-gradient-to-r from-[#1845ad] to-[#23a2f6] -left-[80px] -top-[80px]"></div>
+    <div class="absolute h-[200px] w-[200px] rounded-full bg-gradient-to-r from-[#ff512f] to-[#f09819] -right-[30px] -bottom-[80px]"></div>
+    
+    <form class="h-[520px] w-[400px] bg-white/10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg backdrop-blur-md border-2 border-white/10 shadow-2xl p-10">
+        <h3 class="text-3xl font-medium text-center leading-10 text-white">Login Here</h3>
+        
+        <label class="block mt-8 text-base font-medium text-white">Username</label>
+        <input type="text" placeholder="Email or Phone" class="block h-12 w-full bg-white/5 rounded px-2 mt-2 text-sm font-light text-white outline-none">
+        
+        <label class="block mt-8 text-base font-medium text-white">Password</label>
+        <input type="password" placeholder="Password" class="block h-12 w-full bg-white/5 rounded px-2 mt-2 text-sm font-light text-white outline-none">
+        
+        <button class="mt-12 w-full bg-white text-[#080710] py-4 text-lg font-semibold rounded cursor-pointer hover:bg-gray-100 transition">Log In</button>
+    </form>
+</div>`
+            },
+            {
+                id: 2,
+                title: "Modern Pricing Table",
+                html: `<div class="pricing-container">
+  <div class="card">
+    <h3>Basic</h3>
+    <div class="price">$10</div>
+    <ul>
+      <li>10 GB Storage</li>
+      <li>1 User</li>
+      <li>Email Support</li>
+    </ul>
+    <button>Buy Now</button>
+  </div>
+  <div class="card popular">
+    <h3>Pro</h3>
+    <div class="price">$29</div>
+    <ul>
+      <li>100 GB Storage</li>
+      <li>5 Users</li>
+      <li>Priority Support</li>
+    </ul>
+    <button>Buy Now</button>
+  </div>
+</div>`,
+                css: `.pricing-container { display: flex; gap: 20px; align-items: center; }
+.card { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 250px; transition: transform 0.3s; color: #333; }
+.card:hover { transform: translateY(-10px); }
+.popular { background: #4f46e5; color: white; transform: scale(1.1); }
+.popular:hover { transform: scale(1.15); }
+.price { font-size: 2.5rem; font-weight: bold; margin: 20px 0; }
+ul { list-style: none; padding: 0; margin-bottom: 30px; }
+li { margin: 10px 0; }
+button { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+.card button { background: #4f46e5; color: white; }
+.popular button { background: white; color: #4f46e5; }`,
+                tailwind_html: `<div class="flex gap-5 items-center">
+  <div class="bg-white p-10 rounded-xl text-center shadow-lg w-[250px] transition-transform duration-300 hover:-translate-y-2 text-gray-800">
+    <h3 class="text-xl font-bold">Basic</h3>
+    <div class="text-4xl font-bold my-5">$10</div>
+    <ul class="mb-8 space-y-2">
+      <li>10 GB Storage</li>
+      <li>1 User</li>
+      <li>Email Support</li>
+    </ul>
+    <button class="w-full py-3 rounded-md font-bold bg-indigo-600 text-white hover:bg-indigo-700">Buy Now</button>
+  </div>
+
+  <div class="bg-indigo-600 p-10 rounded-xl text-center shadow-lg w-[250px] transition-transform duration-300 scale-110 hover:scale-[1.15] text-white z-10">
+    <h3 class="text-xl font-bold">Pro</h3>
+    <div class="text-4xl font-bold my-5">$29</div>
+    <ul class="mb-8 space-y-2">
+      <li>100 GB Storage</li>
+      <li>5 Users</li>
+      <li>Priority Support</li>
+    </ul>
+    <button class="w-full py-3 rounded-md font-bold bg-white text-indigo-600 hover:bg-gray-100">Buy Now</button>
+  </div>
+</div>`
+            },
+            {
+                id: 3,
+                title: "Product Card (Hover)",
+                html: `<div class="card">
+  <div class="img-box"><img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/69cbc73d0cb846889f89acbb011e68cb_9366/Superstar_Shoes_White_EG4958_01_standard.jpg"></div>
+  <div class="content">
+    <h2>Adidas Superstar</h2>
+    <div class="size">
+      <h3>Size :</h3><span>7</span><span>8</span><span>9</span>
+    </div>
+    <div class="color">
+      <h3>Color :</h3><span style="background:red;"></span><span style="background:green;"></span>
+    </div>
+    <a href="#">Buy Now</a>
+  </div>
+</div>`,
+                css: `.card { position: relative; width: 320px; height: 450px; background: #232323; border-radius: 20px; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #9bdc28; clip-path: circle(150px at 80% 20%); transition: 0.5s ease-in-out; }
+.card:hover::before { clip-path: circle(300px at 80% -20%); }
+.img-box { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; width: 100%; height: 220px; transition: 0.5s; }
+.card:hover .img-box { top: 0%; transform: translateY(0%); }
+.img-box img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-25deg); width: 270px; }
+.content { position: absolute; bottom: 0; width: 100%; height: 100px; text-align: center; transition: 1s; z-index: 10; }
+.card:hover .content { height: 210px; }
+.content h2 { position: relative; font-weight: 600; letter-spacing: 1px; color: #fff; margin: 0; }
+.size, .color { display: flex; justify-content: center; align-items: center; padding: 8px 20px; transition: 0.5s; opacity: 0; visibility: hidden; }
+.card:hover .size, .card:hover .color { opacity: 1; visibility: visible; transition-delay: 0.5s; }
+.size span { width: 26px; height: 26px; text-align: center; line-height: 26px; font-size: 14px; display: inline-block; color: #111; background: #fff; margin: 0 5px; border-radius: 4px; cursor: pointer; }
+.color span { width: 20px; height: 20px; background: #ff0; border-radius: 50%; margin: 0 5px; cursor: pointer; }
+.content a { display: inline-block; padding: 10px 20px; background: #fff; border-radius: 4px; margin-top: 10px; text-decoration: none; font-weight: 600; color: #111; opacity: 0; transform: translateY(50px); transition: 0.5s; }
+.card:hover .content a { opacity: 1; transform: translateY(0px); transition-delay: 0.75s; }`,
+                tailwind_html: `<div class="relative w-[320px] h-[450px] bg-[#232323] rounded-[20px] overflow-hidden group">
+  <div class="absolute top-0 left-0 w-full h-full bg-[#9bdc28] transition-all duration-500 ease-in-out [clip-path:circle(150px_at_80%_20%)] group-hover:[clip-path:circle(300px_at_80%_-20%)]"></div>
+  
+  <div class="absolute top-1/2 -translate-y-1/2 z-10 w-full h-[220px] transition-all duration-500 group-hover:top-0 group-hover:translate-y-0">
+    <img src="https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/69cbc73d0cb846889f89acbb011e68cb_9366/Superstar_Shoes_White_EG4958_01_standard.jpg" 
+         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[25deg] w-[270px]">
+  </div>
+
+  <div class="absolute bottom-0 w-full h-[100px] text-center transition-all duration-1000 z-10 group-hover:h-[210px]">
+    <h2 class="relative font-semibold tracking-wider text-white m-0">Adidas Superstar</h2>
+    
+    <div class="flex justify-center items-center py-2 px-5 transition-all duration-500 opacity-0 invisible group-hover:opacity-100 group-hover:visible delay-500">
+      <h3 class="text-white mr-2">Size :</h3>
+      <span class="w-[26px] h-[26px] leading-[26px] text-center text-sm inline-block text-[#111] bg-white mx-[5px] rounded cursor-pointer">7</span>
+      <span class="w-[26px] h-[26px] leading-[26px] text-center text-sm inline-block text-[#111] bg-white mx-[5px] rounded cursor-pointer">8</span>
+      <span class="w-[26px] h-[26px] leading-[26px] text-center text-sm inline-block text-[#111] bg-white mx-[5px] rounded cursor-pointer">9</span>
+    </div>
+
+    <div class="flex justify-center items-center py-2 px-5 transition-all duration-500 opacity-0 invisible group-hover:opacity-100 group-hover:visible delay-500">
+      <h3 class="text-white mr-2">Color :</h3>
+      <span class="w-[20px] h-[20px] bg-red-500 rounded-full mx-[5px] cursor-pointer"></span>
+      <span class="w-[20px] h-[20px] bg-green-500 rounded-full mx-[5px] cursor-pointer"></span>
+    </div>
+
+    <a href="#" class="inline-block py-2.5 px-5 bg-white rounded mt-2.5 no-underline font-semibold text-[#111] opacity-0 translate-y-[50px] transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 delay-700">Buy Now</a>
+  </div>
+</div>`
+            },
+            {
+                id: 4,
+                title: "Responsive Navbar",
+                html: `<nav>
+  <div class="logo">BrandX</div>
+  <ul>
+    <li><a class="active" href="#">Home</a></li>
+    <li><a href="#">About</a></li>
+    <li><a href="#">Services</a></li>
+  </ul>
+</nav>`,
+                css: `nav { width: 100%; height: 70px; background: #1b1b1b; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; box-sizing: border-box; }
+nav .logo { color: #fff; font-size: 30px; font-weight: 600; }
+nav ul { display: flex; list-style: none; }
+nav ul li { margin: 0 5px; }
+nav ul li a { color: #fff; text-decoration: none; font-size: 18px; font-weight: 500; padding: 8px 15px; border-radius: 5px; transition: 0.3s; }
+nav ul li a:hover, nav ul li a.active { background: #fff; color: #1b1b1b; }`,
+                tailwind_html: `<nav class="w-full h-[70px] bg-[#1b1b1b] flex items-center justify-between px-12">
+  <div class="text-white text-3xl font-semibold">BrandX</div>
+  <ul class="flex list-none">
+    <li class="mx-1">
+      <a href="#" class="text-white no-underline text-lg font-medium px-4 py-2 rounded transition duration-300 bg-white text-[#1b1b1b]">Home</a>
+    </li>
+    <li class="mx-1">
+      <a href="#" class="text-white no-underline text-lg font-medium px-4 py-2 rounded transition duration-300 hover:bg-white hover:text-[#1b1b1b]">About</a>
+    </li>
+    <li class="mx-1">
+      <a href="#" class="text-white no-underline text-lg font-medium px-4 py-2 rounded transition duration-300 hover:bg-white hover:text-[#1b1b1b]">Services</a>
+    </li>
+  </ul>
+</nav>
+<div class="p-10 text-center text-gray-500">
+  (Tailwind version is mobile-first responsive by default if configured)
+</div>`
+            },
+            {
+                id: 5,
+                title: "Social Profile Card",
+                html: `<div class="card">
+  <div class="card-image"></div>
+  <div class="profile-image"><img src="https://randomuser.me/api/portraits/women/44.jpg"></div>
+  <div class="card-content">
+    <h3>Sarah Doe</h3>
+    <p>UX Designer</p>
+    <div class="stats">
+      <div><span>120</span><small>Posts</small></div>
+      <div><span>10k</span><small>Followers</small></div>
+    </div>
+    <div class="buttons">
+      <button class="btn-primary">Follow</button>
+      <button>Message</button>
+    </div>
+  </div>
+</div>`,
+                css: `.card { background: #231e39; border-radius: 5px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: #b3b8cd; width: 350px; position: relative; padding-top: 30px; overflow: hidden; text-align: center; }
+.card-image { height: 100px; width: 100%; background: #03bfcb; position: absolute; top: 0; left: 0; }
+.profile-image img { width: 120px; height: 120px; border-radius: 50%; border: 5px solid #231e39; position: relative; z-index: 10; display: block; margin: 0 auto; }
+.card-content { padding: 20px; }
+h3 { margin: 10px 0 0; color: #f3f3f3; }
+.stats { display: flex; justify-content: space-around; margin: 20px 0; }
+.stats span { font-weight: bold; color: #f3f3f3; display: block; }
+.buttons { display: flex; gap: 10px; justify-content: center; }
+button { border: 1px solid #03bfcb; background: transparent; color: #03bfcb; padding: 10px 25px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+.btn-primary { background: #03bfcb; color: #231e39; }`,
+                tailwind_html: `<div class="bg-[#231e39] rounded-md shadow-2xl text-[#b3b8cd] w-[350px] relative pt-[30px] overflow-hidden text-center">
+  <div class="h-[100px] w-full bg-[#03bfcb] absolute top-0 left-0"></div>
+  
+  <div class="relative z-10 mx-auto w-[120px] h-[120px]">
+    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-full h-full rounded-full border-[5px] border-[#231e39]">
+  </div>
+
+  <div class="p-5">
+    <h3 class="mt-2.5 text-[#f3f3f3] text-xl font-bold">Sarah Doe</h3>
+    <p class="text-sm mt-1">UX Designer</p>
+    
+    <div class="flex justify-around my-5">
+      <div class="flex flex-col">
+        <span class="font-bold text-[#f3f3f3]">120</span>
+        <small>Posts</small>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-bold text-[#f3f3f3]">10k</span>
+        <small>Followers</small>
+      </div>
+    </div>
+
+    <div class="flex gap-2.5 justify-center">
+      <button class="border border-[#03bfcb] bg-[#03bfcb] text-[#231e39] py-2.5 px-6 rounded font-bold cursor-pointer">Follow</button>
+      <button class="border border-[#03bfcb] bg-transparent text-[#03bfcb] py-2.5 px-6 rounded font-bold cursor-pointer hover:bg-[#03bfcb]/10">Message</button>
+    </div>
+  </div>
+</div>`
+            },
+            {
+                id: 6,
+                title: "Testimonial Slider",
+                html: `<div class="testimonial-box">
+  <div class="header">
+    <img src="https://randomuser.me/api/portraits/men/32.jpg">
+    <div>
+      <h3>John Smith</h3>
+      <span>Software Engineer</span>
+    </div>
+  </div>
+  <p>"This tool is absolutely amazing. Clean code!"</p>
+</div>`,
+                css: `.testimonial-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); max-width: 400px; color: #333; }
+.header { display: flex; align-items: center; margin-bottom: 20px; }
+.header img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; }
+.header h3 { margin: 0; font-size: 18px; color: #333; }
+.header span { font-size: 13px; color: #777; }
+p { color: #555; line-height: 1.6; font-style: italic; }`,
+                tailwind_html: `<div class="bg-white p-8 rounded-xl shadow-md max-w-[400px]">
+  <div class="flex items-center mb-5">
+    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-[50px] h-[50px] rounded-full object-cover mr-4">
+    <div>
+      <h3 class="m-0 text-lg font-bold text-gray-800">John Smith</h3>
+      <span class="text-sm text-gray-500">Software Engineer</span>
+    </div>
+  </div>
+  <p class="text-gray-600 leading-relaxed italic">"This tool is absolutely amazing. Clean code!"</p>
+</div>`
+            },
+            {
+                id: 7,
+                title: "CSS Grid Gallery",
+                html: `<div class="gallery">
+  <div class="item big"><img src="https://picsum.photos/400/400?random=1"></div>
+  <div class="item"><img src="https://picsum.photos/400/400?random=2"></div>
+  <div class="item wide"><img src="https://picsum.photos/600/300?random=4"></div>
+  <div class="item"><img src="https://picsum.photos/400/400?random=5"></div>
+</div>`,
+                css: `.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); grid-auto-rows: 150px; grid-auto-flow: dense; gap: 10px; width: 100%; max-width: 600px; }
+.item { overflow: hidden; border-radius: 5px; }
+.item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.item:hover img { transform: scale(1.1); }
+.big { grid-column: span 2; grid-row: span 2; }
+.wide { grid-column: span 2; }`,
+                tailwind_html: `<div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] auto-rows-[150px] grid-flow-dense gap-2.5 w-full max-w-[600px]">
+  <div class="overflow-hidden rounded-md col-span-2 row-span-2 group">
+    <img src="https://picsum.photos/400/400?random=1" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+  </div>
+  
+  <div class="overflow-hidden rounded-md group">
+    <img src="https://picsum.photos/400/400?random=2" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+  </div>
+
+  <div class="overflow-hidden rounded-md col-span-2 group">
+    <img src="https://picsum.photos/600/300?random=4" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+  </div>
+
+  <div class="overflow-hidden rounded-md group">
+    <img src="https://picsum.photos/400/400?random=5" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+  </div>
+</div>`
+            },
+            {
+                id: 8,
+                title: "Animated Loading",
+                html: `<div class="loader">
+  <span></span><span></span><span></span>
+</div>`,
+                css: `.loader { position: relative; width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(#f07e6e, #84cdfa, #5ad1cd); animation: animate 1.5s linear infinite; }
+.loader:after { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; background: #2c3e50; border-radius: 50%; }
+.loader span { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(#f07e6e, #84cdfa, #5ad1cd); filter: blur(20px); }
+@keyframes animate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`,
+                tailwind_html: `<div class="relative w-[100px] h-[100px] rounded-full bg-gradient-to-r from-[#f07e6e] via-[#84cdfa] to-[#5ad1cd] animate-[spin_1.5s_linear_infinite]">
+  <div class="absolute inset-[10px] bg-[#2c3e50] rounded-full z-10"></div>
+  
+  <span class="absolute w-full h-full rounded-full bg-gradient-to-r from-[#f07e6e] via-[#84cdfa] to-[#5ad1cd] blur-xl"></span>
+</div>`
+            },
+            {
+                id: 9,
+                title: "Dark Mode Toggle",
+                html: `<label class="switch">
+  <input type="checkbox">
+  <span class="slider"></span>
+</label>`,
+                css: `.switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #2196F3; }
+input:checked + .slider:before { transform: translateX(26px); }`,
+                tailwind_html: `<label class="relative inline-block w-[60px] h-[34px]">
+  <input type="checkbox" class="peer opacity-0 w-0 h-0">
+  <span class="absolute cursor-pointer inset-0 bg-[#ccc] transition-all duration-300 rounded-full 
+               before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-[4px] before:bottom-[4px] before:bg-white before:transition-all before:duration-300 before:rounded-full
+               peer-checked:bg-[#2196F3] peer-checked:before:translate-x-[26px]">
+  </span>
+</label>`
+            },
+            {
+                id: 10,
+                title: "Website Footer",
+                html: `<footer>
+  <ul class="social">
+    <li><a href="#">FB</a></li>
+    <li><a href="#">TW</a></li>
+  </ul>
+  <p>&copy; 2026 Future Web</p>
+</footer>`,
+                css: `footer { background: #3586ff; padding: 20px 50px; display: flex; justify-content: center; align-items: center; flex-direction: column; width: 100%; min-height: 150px; }
+.social { display: flex; list-style: none; padding: 0; }
+.social li a { color: #fff; font-size: 1.2em; margin: 0 10px; text-decoration: none; transition: 0.5s; opacity: 0.75; }
+.social li a:hover { transform: translateY(-10px); opacity: 1; }
+p { color: #fff; margin-top: 15px; }`,
+                tailwind_html: `<footer class="w-full bg-[#3586ff] min-h-[150px] p-12 flex flex-col justify-center items-center">
+  <ul class="flex list-none p-0">
+    <li><a href="#" class="text-white text-xl mx-2.5 opacity-75 transition-all duration-500 hover:-translate-y-2 hover:opacity-100 block">FB</a></li>
+    <li><a href="#" class="text-white text-xl mx-2.5 opacity-75 transition-all duration-500 hover:-translate-y-2 hover:opacity-100 block">TW</a></li>
+    <li><a href="#" class="text-white text-xl mx-2.5 opacity-75 transition-all duration-500 hover:-translate-y-2 hover:opacity-100 block">IN</a></li>
+  </ul>
+  <p class="text-white mt-4 text-center">&copy; 2026 Future Web | All Rights Reserved</p>
+</footer>`
+            }
+        ];
+
+        // --- DOM Elements ---
+        const projectListEl = document.getElementById('project-list');
+        const htmlInput = document.getElementById('html-code');
+        const cssInput = document.getElementById('css-code');
+        const previewFrame = document.getElementById('preview-frame');
+        
+        const htmlContainer = document.getElementById('html-container');
+        const cssContainer = document.getElementById('css-container');
+        const editorLabel = document.getElementById('editor-label');
+        
+        const mixToggleBtn = document.getElementById('mix-toggle');
+        const mixDot = document.getElementById('mix-dot');
+        
+        const tailwindToggleBtn = document.getElementById('tailwind-toggle');
+        const twDot = document.getElementById('tw-dot');
+
+        // --- State ---
+        let activeId = 1;
+        let debounceTimer;
+        let isMixedMode = false;
+        let isTailwindMode = false;
+
+        // --- Helper: Generate Full HTML File ---
+        function getFullBoilerplate(html, css) {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Project</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+${css}
+    </style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+        }
+
+        // --- Helper: Generate Tailwind Boilerplate ---
+        function getTailwindBoilerplate(htmlBody) {
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind Project</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    </head>
+<body class="bg-gray-100 h-screen flex flex-col items-center justify-center m-0">
+${htmlBody}
+</body>
+</html>`;
+        }
+
+        // --- Logic: Toggle Tailwind Mode ---
+        function toggleTailwindMode() {
+            if (!isMixedMode) return; // Guard clause: Only works in mix mode
+
+            isTailwindMode = !isTailwindMode;
+            const proj = projects.find(p => p.id === activeId);
+
+            if (isTailwindMode) {
+                // UI: Active Style
+                tailwindToggleBtn.classList.remove('bg-slate-800', 'text-slate-500');
+                tailwindToggleBtn.classList.add('bg-cyan-900/30', 'text-cyan-400', 'border-cyan-500/50');
+                twDot.style.left = '18px';
+                twDot.classList.replace('bg-slate-500', 'bg-cyan-400');
+                
+                // Content: Load Pre-converted Tailwind Code
+                htmlInput.value = getTailwindBoilerplate(proj.tailwind_html);
+                editorLabel.innerText = "Tailwind CSS Code (Single File)";
+
+            } else {
+                // UI: Inactive Style
+                tailwindToggleBtn.classList.add('bg-slate-800', 'text-slate-500');
+                tailwindToggleBtn.classList.remove('bg-cyan-900/30', 'text-cyan-400', 'border-cyan-500/50');
+                twDot.style.left = '4px';
+                twDot.classList.replace('bg-cyan-400', 'bg-slate-500');
+
+                // Content: Revert to Mix CSS
+                const currentCss = cssInput.value || proj.css; 
+                // We use proj.html here to reset because converting back from Tailwind to semantic HTML is hard
+                htmlInput.value = getFullBoilerplate(proj.html, currentCss); 
+                editorLabel.innerText = "Complete HTML File (Standard CSS)";
+            }
+            updatePreview();
+        }
+
+        // --- Logic: Toggle Mix Mode ---
+        function toggleMixMode() {
+            isMixedMode = !isMixedMode;
+            
+            // UI Logic for Mix Button
+            if (isMixedMode) {
+                // Mix ON
+                htmlContainer.classList.replace('h-1/2', 'h-full');
+                cssContainer.classList.add('hidden');
+                
+                mixDot.style.left = '18px';
+                mixDot.classList.replace('bg-slate-400', 'bg-emerald-400');
+                mixToggleBtn.classList.add('text-emerald-400');
+                
+                // Enable Tailwind Toggle
+                tailwindToggleBtn.disabled = false;
+                tailwindToggleBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                editorLabel.innerText = "Complete HTML File (Standard CSS)";
+                
+                // Content Logic
+                const currentHtml = htmlInput.value;
+                const currentCss = cssInput.value;
+                htmlInput.value = getFullBoilerplate(currentHtml, currentCss);
+
+            } else {
+                // Mix OFF
+                
+                // Force turn off Tailwind if it was on
+                if(isTailwindMode) {
+                    toggleTailwindMode(); // This will reset variables and UI
+                }
+
+                htmlContainer.classList.replace('h-full', 'h-1/2');
+                cssContainer.classList.remove('hidden');
+                
+                mixDot.style.left = '4px';
+                mixDot.classList.replace('bg-emerald-400', 'bg-slate-400');
+                mixToggleBtn.classList.remove('text-emerald-400');
+
+                // Disable Tailwind Toggle
+                tailwindToggleBtn.disabled = true;
+                tailwindToggleBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                editorLabel.innerText = "HTML Structure";
+
+                // Content Logic: Extract (Simple fallback)
+                const proj = projects.find(p => p.id === activeId);
+                htmlInput.value = proj.html;
+                cssInput.value = proj.css;
+            }
+            updatePreview();
+        }
+
+        // --- Logic: Load Project ---
+        function renderProjectList() {
+            projectListEl.innerHTML = '';
+            projects.forEach(proj => {
+                const btn = document.createElement('button');
+                const isActive = proj.id === activeId;
+                let classes = "w-full text-left px-4 py-3 text-sm transition-all border-b border-slate-800 flex items-center gap-2 ";
+                classes += isActive 
+                    ? "bg-emerald-600/10 text-emerald-400 border-l-[3px] border-l-emerald-500" 
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200";
+
+                btn.className = classes;
+                btn.innerHTML = `
+                    <span class="text-[10px] opacity-50 font-mono w-4">${proj.id}.</span>
+                    <span class="truncate font-medium">${proj.title}</span>
+                `;
+                btn.onclick = () => loadProject(proj.id);
+                projectListEl.appendChild(btn);
+            });
+        }
+
+        function loadProject(id) {
+            activeId = id;
+            const proj = projects.find(p => p.id === id);
+            
+            cssInput.value = proj.css; // Always update hidden CSS
+            
+            if (isMixedMode) {
+                if(isTailwindMode) {
+                    htmlInput.value = getTailwindBoilerplate(proj.tailwind_html);
+                } else {
+                    htmlInput.value = getFullBoilerplate(proj.html, proj.css);
+                }
+            } else {
+                htmlInput.value = proj.html;
+            }
+            
+            renderProjectList();
+            updatePreview();
+        }
+
+        // --- Logic: Render Preview ---
+        function updatePreview() {
+            let sourceContent = "";
+            
+            if (isMixedMode) {
+                 // The textarea contains the FULL file (boilerplate included)
+                 sourceContent = htmlInput.value;
+            } else {
+                 // Split mode: Manual Construct
+                 sourceContent = getFullBoilerplate(htmlInput.value, cssInput.value);
+            }
+
+            // Important: Handle script execution for Tailwind CDN in iframe
+            const blob = new Blob([sourceContent], { type: 'text/html' });
+            previewFrame.src = URL.createObjectURL(blob);
+        }
+
+        function handleInput() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updatePreview, 300);
+        }
+
+        htmlInput.addEventListener('input', handleInput);
+        cssInput.addEventListener('input', handleInput);
+        
+        loadProject(1);
+    </script>
+</body>
+</html>

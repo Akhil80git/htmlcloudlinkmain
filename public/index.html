@@ -3,724 +3,901 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>HTML CSS JS Playground – Smart History</title>
+<title>HTML Pro Playground</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
 <style>
-/* CSS Reset & Layout */
+/* ===== STYLES ===== */
 *{box-sizing:border-box}
 body{
-  margin:0; padding:10px; font-family:'Segoe UI', sans-serif;
-  height:100vh; display:flex; flex-direction:column; gap:10px; background: #1e1e1e; color: white;
+  margin:0; padding:10px; font-family:'Segoe UI',sans-serif; height:100vh;
+  display:flex; flex-direction:column; gap:10px;
+  background:#121212; color:white;
 }
 
-.controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding-bottom: 5px;}
-
-#main-container{ flex:1; display:flex; overflow:hidden; border:1px solid #444; border-radius: 8px; background: #252526;}
-
-/* Editor Styling with Line Numbers */
-.editor{ 
-  width:50%; min-width:220px; display:flex; position:relative; 
-  background: #fff;
+/* LIGHT MODE */
+body.light-mode{
+  background:#f0f2f5;
+  color:#1e1e1e;
 }
-.editor-wrapper {
-  display: flex;
-  width: 100%;
-  height: 100%;
+body.light-mode .controls{
+  background:#ffffff;
+  border-color:#d1d5db;
 }
-.line-numbers {
-  width: 50px;
-  background: #2d2d2d;
-  color: #858585;
-  text-align: right;
-  padding: 15px 5px;
-  font-family: 'Consolas', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  overflow-y: hidden;
-  user-select: none;
-  border-right: 1px solid #444;
+body.light-mode #live-clock{
+  background:#e5e7eb;
+  color:#059669;
+  border-color:#d1d5db;
 }
-.code-wrapper {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
+body.light-mode .stats-group{
+  background:#f3f4f6;
+  border-color:#d1d5db;
+  color:#374151;
 }
-#code{
-  width: 100%;
-  height: 100%;
-  padding: 15px;
-  padding-left: 10px;
-  resize:none; border:none; outline:none;
-  font-family:'Consolas', monospace; font-size:14px;
-  line-height: 1.5;
-  background-color: #ffffff; color: #000000;
-  background-size: cover; background-position: center;
-  white-space: pre;
-  overflow-wrap: normal;
-  overflow-x: auto;
+body.light-mode #main-container{
+  background:#ffffff;
+  border-color:#d1d5db;
 }
-
-.resizer{ width:6px; cursor:col-resize; background:#333;}
-
-/* History Panel Styling - SIMPLIFIED */
-#history-panel{ 
-  width:60px; background:#2d2d2d; padding:10px; overflow-y:auto; 
-  border-left:1px solid #444; border-right:1px solid #444;
+body.light-mode .editor{
+  background:#f9fafb;
 }
-.hist-item{ 
-  display:flex; justify-content: center; align-items: center;
-  background: #3c3c3c; padding: 8px; margin-bottom: 6px; border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+body.light-mode .line-numbers{
+  background:#f3f4f6;
+  color:#6b7280;
+  border-right-color:#d1d5db;
 }
-.hist-item:hover { 
-  background: #4a4a4a; 
-  transform: scale(1.05);
+body.light-mode #code{
+  color:#1f2937;
+  background:#f9fafb;
 }
-.hist-item.active { 
-  background: #2196f3; 
-  box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+body.light-mode .hist-item{
+  background:#e5e7eb;
+  color:#374151;
 }
-.hist-num {
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-/* Output & Modal */
-#output-container{ flex:1; background:#fff; display:flex; border-radius: 0 8px 8px 0;}
-.preview-stage{ flex:1; padding:0; display: flex; align-items: center; justify-content: center; background: #f0f0f0; position: relative; }
-.device iframe{ width:100%; height:100%; border:none; background: white;}
-.device.desktop { width:100%; height:100%; margin:0; border:none; }
-.device.mobile { width:360px; height:640px; margin:auto; border:2px solid #000; border-radius: 20px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-
-#preview-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #666; font-size: 16px; display: none; }
-
-/* Auto Run Indicator */
-.auto-run-indicator {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #4caf50;
-  color: white;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: bold;
-  z-index: 100;
-  display: none;
-}
-
-/* Enhanced Modal */
-.modal{ position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:9999; }
-.hidden{ display:none !important; }
-.modal-card{ background:#252526; color: white; padding:25px; border-radius:15px; width:450px; max-width:95%; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-.cloud-link-item { background: #333; padding: 12px; margin-bottom: 12px; border-radius: 8px; border-left: 4px solid #009688; position: relative;}
-.cloud-link-item a { color: #4fc3f7; text-decoration: none; font-size: 12px; word-break: break-all; display: block; margin-top: 5px;}
-.cloud-note { font-weight: bold; color: #fff; font-size: 14px; }
-.cloud-date { font-size: 10px; color: #888; margin-top: 2px; }
-
-/* All History Modal */
-.history-container { max-height: 400px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
-.history-item { 
-  background: #333; padding: 12px; margin-bottom: 10px; border-radius: 8px; 
-  border-left: 4px solid #2196f3; position: relative;
-}
-.history-local { 
-  border-left-color: #4caf50; /* GREEN for local */
-}
-.history-cloud { 
-  border-left-color: #ffeb3b; /* YELLOW for cloud */
-}
-.history-type { 
-  font-size: 10px; padding: 2px 6px; border-radius: 3px; 
-  background: #555; display: inline-block; margin-bottom: 5px;
-}
-.history-type.local { background: #4caf50; color: white; } /* GREEN for local */
-.history-type.cloud { 
-  background: #ffeb3b; /* YELLOW for cloud */
-  color: #333;
-}
-.history-note { font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 5px; }
-.history-preview { 
-  font-size: 11px; color: #aaa; background: #2a2a2a; 
-  padding: 5px; border-radius: 3px; margin: 5px 0;
-  max-height: 60px; overflow: hidden; text-overflow: ellipsis; 
-}
-.history-date { font-size: 10px; color: #888; margin-top: 2px; }
-
-/* Buttons */
-button{ padding:8px 12px; border:none; cursor:pointer; border-radius:4px; font-weight:bold;}
-#run-btn{ background:#4caf50; color:white}
-#save-btn{ background:#2196f3; color:white}
-#bgPickBtn{ background:#9c27b0; color:white}
-#textPickBtn{ background:#ff9800; color:black}
-#all-history-btn{ background:#795548; color:white}
-#new-btn{ 
-  background:#ff5722; 
+body.light-mode .hist-item.active{
+  background:#3b82f6;
   color:white;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  padding: 0;
 }
-#cloud-save-btn{ background:#673ab7; color:white}
+
+/* VIEW MODE - SIRF USER KA HTML DIKHEGA */
+body.view-mode {
+  padding:0;
+  overflow:hidden;
+}
+body.view-mode .controls,
+body.view-mode #history-panel,
+body.view-mode .editor,
+body.view-mode .resizer,
+body.view-mode .stats-group {
+  display:none !important;
+}
+body.view-mode #main-container {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+body.view-mode #output-container {
+  width:100vw;
+  height:100vh;
+  border-radius:0;
+}
+body.view-mode #output {
+  background: white;
+  border: none;
+}
+
+/* CONTROLS LAYOUT */
+.controls{
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+  align-items:center;
+  padding:6px 8px;
+  background:#1e1e1e;
+  border-radius:8px;
+  border:1px solid #333;
+}
+.controls > * { flex-shrink:0; }
+
+#live-clock{
+  background:#000;
+  color:#0f0;
+  padding:5px 8px;
+  border-radius:4px;
+  font-family:Consolas,monospace;
+  font-size:12px;
+  border:1px solid #333;
+}
+
+.stats-group{
+  display:flex;
+  gap:4px;
+  background:#2a2a2a;
+  padding:4px 8px;
+  border-radius:20px;
+  font-size:10px;
+  align-items:center;
+  border:1px solid #444;
+  white-space:nowrap;
+}
+
+.progress-box{
+  width:50px;
+  height:5px;
+  background:#444;
+  border-radius:4px;
+  overflow:hidden;
+}
+#cloud-fill,#local-fill{height:100%; transition:width 0.5s;}
+
+/* MAIN CONTAINER */
+#main-container{
+  flex:1;
+  display:flex;
+  overflow:hidden;
+  border:1px solid #333;
+  border-radius:8px;
+  background:#1e1e1e;
+}
+
+.editor{
+  width:50%;
+  min-width:200px;
+  display:flex;
+  background:#1e1e1e;
+}
+
+.line-numbers{
+  width:40px;
+  background:#252526;
+  color:#858585;
+  text-align:right;
+  padding:15px 3px;
+  font-family:Consolas,monospace;
+  font-size:13px;
+  line-height:1.5;
+  overflow:hidden;
+  border-right:1px solid #333;
+}
+
+.code-wrapper{
+  flex:1;
+  overflow:hidden;
+}
+
+#code{
+  width:100%;
+  height:100%;
+  padding:15px;
+  resize:none;
+  border:none;
+  outline:none;
+  font-family:Consolas,monospace;
+  font-size:13px;
+  background:transparent;
+  color:#e0e0e0;
+  line-height:1.5;
+  white-space:pre;
+  overflow-x:auto;
+}
+
+.resizer{
+  width:5px;
+  cursor:col-resize;
+  background:#333;
+}
+
+#history-panel{
+  width:60px;
+  background:#1e1e1e;
+  padding:8px;
+  overflow-y:auto;
+  border-left:1px solid #333;
+}
+
+.hist-item{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#333;
+  padding:8px;
+  margin-bottom:6px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:12px;
+}
+.hist-item:hover{background:#444;}
+.hist-item.active{background:#2196f3;}
+
+#output-container{
+  flex:1;
+  background:#fff;
+  display:flex;
+}
+#output{
+  width:100%;
+  height:100%;
+  border:none;
+  background:white;
+}
+
+/* LEARNING TOOLS BUTTONS - NEW */
+.learning-btn {
+  background:#3f51b5;
+  color:white;
+  padding:4px 8px;
+  border-radius:4px;
+  font-size:11px;
+  font-weight:bold;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  cursor:pointer;
+  border:none;
+  white-space:nowrap;
+}
+.learning-btn:hover {
+  filter:brightness(1.1);
+}
+#html-learn-btn { background:#e44d26; }  /* HTML orange */
+#tailwind-learn-btn { background:#38bdf8; } /* Tailwind blue */
+#tailwind-compiler-btn { background:#0ea5e9; } /* Darker blue */
+#react-compiler-btn { background:#61dafb; color:#000; } /* React light blue */
+#api-test-btn { background:#e91e63; } /* Pink */
+
+/* LEARNING TOOLS CONTAINER */
+.learning-container {
+  position:fixed;
+  top:70px;
+  left:10px;
+  right:10px;
+  bottom:10px;
+  background:#1e1e1e;
+  border:1px solid #333;
+  border-radius:8px;
+  z-index:10000;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 5px 20px rgba(0,0,0,0.5);
+}
+.learning-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 12px;
+  background:#252526;
+  border-bottom:1px solid #333;
+  border-radius:8px 8px 0 0;
+}
+.learning-header h3 {
+  margin:0;
+  color:white;
+  font-size:13px;
+}
+.learning-close {
+  background:#f44336;
+  color:white;
+  border:none;
+  border-radius:4px;
+  width:26px;
+  height:26px;
+  font-size:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.learning-close:hover {
+  background:#d32f2f;
+}
+.learning-frame {
+  flex:1;
+  width:100%;
+  border:none;
+  background:white;
+}
+
+/* BUTTONS */
+button{
+  padding:4px 8px;
+  border:none;
+  cursor:pointer;
+  border-radius:4px;
+  font-weight:bold;
+  color:white;
+  font-size:11px;
+}
+#new-btn{
+  background:#ff5722;
+  border-radius:50%;
+  width:32px;
+  height:32px;
+  font-size:16px;
+  padding:0;
+}
+#run-btn{background:#4caf50;}
+#save-local-btn{background:#2196f3;}
+#cloud-btn{background:#673ab7;}
+#links-btn{background:#009688;}
+#local-history-btn{background:#795548;}
+#theme-toggle-btn{background:#607d8b;}
+#editor-bg-btn{background:#9c27b0;}
+#text-color-btn{background:#ff9800; color:#000;}
+
+/* MODALS */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+.hidden{display:none !important;}
+.modal-card{
+  background:#1e1e1e;
+  color:white;
+  padding:20px;
+  border-radius:12px;
+  width:500px;
+  max-width:95vw;
+  border:1px solid #333;
+}
+
+/* LOCAL HISTORY */
+.local-history-list{
+  max-height:350px;
+  overflow-y:auto;
+  margin:12px 0;
+}
+.local-hist-item{
+  background:#2a2a2a;
+  border-radius:6px;
+  padding:10px;
+  margin-bottom:6px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #444;
+}
+.local-hist-info{
+  flex:1;
+  cursor:pointer;
+}
+.local-hist-preview{
+  font-size:12px;
+  color:#ccc;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:220px;
+}
+.local-hist-delete{
+  background:#f44336;
+  color:white;
+  border:none;
+  border-radius:4px;
+  padding:4px 8px;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:11px;
+}
+
+/* CLOUD ITEMS */
+.cloud-item{
+  background:#222;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  cursor:pointer;
+  border:1px solid #333;
+}
+.cloud-item .title{
+  font-weight:bold;
+  color:#4fc3f7;
+  font-size:14px;
+}
+.cloud-item .time{
+  font-size:11px;
+  color:#aaa;
+}
+.cloud-item .link{
+  font-size:12px;
+  color:#81c784;
+  word-break:break-all;
+}
+
+/* COLOR PICKER */
+.color-picker-modal .modal-card{
+  width:300px;
+  text-align:center;
+}
+.color-picker-modal input[type=color]{
+  width:100%;
+  height:50px;
+  cursor:pointer;
+  margin:12px 0;
+}
+.color-picker-modal .apply-top{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  margin-bottom:12px;
+}
 </style>
 </head>
-
 <body>
-
 <div class="controls">
-  <button id="new-btn" title="New Editor">+</button>
+  <button id="new-btn">+</button>
+  <div id="live-clock">00:00:00</div>
   <button id="run-btn">Run</button>
-  <button id="save-btn">Save Local History</button>
-  <button id="cloud-save-btn">Cloud Save</button>
-  <button id="all-history-btn">All History</button>
-  <button id="bgPickBtn">Editor BG</button>
-  <button id="textPickBtn">Text Color</button>
-  <button id="desktop-view" style="background:#444; color:white">Desktop</button>
-  <button id="mobile-view" style="background:#444; color:white">Mobile</button>
-  <label style="color: #ccc; font-size: 12px; margin-left: 10px;">
-    <input type="checkbox" id="auto-run"> Auto Run
+  <button id="save-local-btn">Save</button>
+  <button id="cloud-btn">Cloud</button>
+  <button id="links-btn">History</button>
+  <button id="local-history-btn">Local</button>
+  <button id="theme-toggle-btn">🌓</button>
+  <button id="editor-bg-btn">BG</button>
+  <button id="text-color-btn">Text</button>
+  
+  <!-- NEW: 4 LEARNING BUTTONS + API TEST -->
+  <button id="html-learn-btn" class="learning-btn">📄 HTML</button>
+  <button id="tailwind-learn-btn" class="learning-btn">🌊 TW</button>
+  <button id="tailwind-compiler-btn" class="learning-btn">⚙️ TWC</button>
+  <button id="react-compiler-btn" class="learning-btn">⚛️ React</button>
+  <button id="api-test-btn" class="learning-btn">🔬 API</button>
+  
+  <label style="font-size:10px;display:flex;align-items:center;gap:2px;color:#ccc;">
+    <input type="checkbox" id="auto-run" checked> Auto
   </label>
-  <button id="show-links" style="background:#009688; color:white">Subdomain Links History</button>
+  <div class="stats-group">
+    <span>☁️ <span id="cloud-count">0</span></span>
+    <div class="progress-box"><div id="cloud-fill" style="background:#673ab7;"></div></div>
+  </div>
+  <div class="stats-group">
+    <span>📂 <span id="local-count">0</span></span>
+    <div class="progress-box"><div id="local-fill" style="background:#2196f3;"></div></div>
+  </div>
+</div>
+
+<!-- LEARNING TOOLS CONTAINER - YAHAN SARI FILES OPEN HONGI -->
+<div id="learning-container" class="learning-container hidden">
+  <div class="learning-header">
+    <h3 id="learning-title">📚 Learning Tool</h3>
+    <button class="learning-close" id="close-learning">✕</button>
+  </div>
+  <iframe id="learning-frame" class="learning-frame" src="about:blank"></iframe>
 </div>
 
 <div id="main-container">
   <div class="editor">
-    <div class="editor-wrapper">
-      <div class="line-numbers" id="line-numbers">1</div>
-      <div class="code-wrapper">
-        <textarea id="code" placeholder="Write HTML here..."></textarea>
-        <div class="auto-run-indicator" id="auto-run-indicator">AUTO</div>
-      </div>
-    </div>
-    <div class="resizer" id="resizer"></div>
+    <div class="line-numbers" id="line-numbers">1</div>
+    <div class="code-wrapper"><textarea id="code" spellcheck="false" placeholder="Write HTML here..."></textarea></div>
   </div>
-
+  <div class="resizer" id="resizer"></div>
   <div id="history-panel">
-    <div style="font-size: 11px; text-align:center; margin-bottom:10px; color:#aaa; font-weight:bold;">VERSIONS</div>
+    <div style="font-size:8px;text-align:center;color:#555;margin-bottom:6px;">VERSIONS</div>
     <div id="hist-list"></div>
   </div>
+  <div id="output-container"><iframe id="output"></iframe></div>
+</div>
 
-  <div id="output-container">
-    <div class="preview-stage">
-      <div id="preview-message">Preview Area</div>
-      <div class="device desktop">
-        <iframe id="output"></iframe>
-      </div>
-    </div>
+<!-- MODALS -->
+<div id="linksModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>Cloud History</h3>
+    <div id="links-container" style="max-height:350px;overflow-y:auto;padding:4px;"></div>
+    <button onclick="closeModal()" style="background:#f44336;width:100%;margin-top:12px;padding:10px;">Close</button>
   </div>
 </div>
 
-<div id="colorModal" class="modal hidden">
+<div id="localHistoryModal" class="modal hidden">
   <div class="modal-card">
-    <h3 id="modalTitle" style="margin-top:0">Settings</h3>
-    
-    <div id="color-picker-section">
-      <div style="margin-bottom:15px">
-        <label style="font-size:12px; color:#aaa">PICK COLOR</label>
-        <input type="color" id="solidPicker" style="width:100%; height:40px; background:none; border:none; cursor:pointer">
-      </div>
-    </div>
+    <h3>📁 Local Versions</h3>
+    <div id="local-history-container" class="local-history-list"></div>
+    <button onclick="closeLocalHistoryModal()" style="background:#607d8b;width:100%;padding:10px;">Close</button>
+  </div>
+</div>
 
-    <div id="bg-only-options">
-      <label style="font-size:12px; color:#aaa">GRADIENT PRESETS</label>
-      <select id="gradSelect" style="width:100%; padding:8px; margin-top:5px; background:#333; color:white; border:1px solid #555">
-        <option value="">None</option>
-        <option value="linear-gradient(45deg,#ff512f,#dd2476)">Sunset</option>
-        <option value="linear-gradient(45deg,#00c6ff,#0072ff)">Ocean</option>
-        <option value="linear-gradient(45deg,#12c2e9,#c471ed,#f64f59)">Jodhpur</option>
-      </select>
-      <label style="font-size:12px; color:#aaa; display:block; margin-top:15px">UPLOAD BACKGROUND IMAGE</label>
-      <input type="file" id="bgImage" accept="image/*" style="font-size:11px; margin-top:5px">
+<div id="colorPickerModal" class="modal color-picker-modal hidden">
+  <div class="modal-card">
+    <h4 id="colorPickerTitle">Choose Color</h4>
+    <div class="apply-top">
+      <button id="applyColorBtn" style="background:#4caf50;">Apply</button>
+      <button id="cancelColorBtn" style="background:#f44336;">Cancel</button>
     </div>
-
-    <div id="links-display-section" class="hidden">
-      <div id="links-container" style="max-height: 350px; overflow-y: auto; margin-top: 10px; padding-right:5px;"></div>
-    </div>
-
-    <!-- All History Section -->
-    <div id="all-history-section" class="hidden">
-      <div class="history-container" id="all-history-container"></div>
-    </div>
-
-    <button onclick="closeModal()" style="background:#f44336; color:white; width:100%; margin-top:20px">Close</button>
+    <input type="color" id="colorPickerInput" value="#9c27b0">
   </div>
 </div>
 
 <script>
-const codeInput = document.getElementById("code");
-const lineNumbers = document.getElementById("line-numbers");
-const output = document.getElementById("output");
-const histList = document.getElementById("hist-list");
-const modal = document.getElementById("colorModal");
-const bgOptions = document.getElementById("bg-only-options");
-const colorPickerSection = document.getElementById("color-picker-section");
-const linksDisplaySection = document.getElementById("links-display-section");
-const allHistorySection = document.getElementById("all-history-section");
-const linksContainer = document.getElementById("links-container");
-const allHistoryContainer = document.getElementById("all-history-container");
-const device = document.querySelector('.device');
-const autoRunCheckbox = document.getElementById("auto-run");
-const autoRunIndicator = document.getElementById("auto-run-indicator");
+// ===== ELEMENTS =====
+const codeInput = document.getElementById('code');
+const lineNumbers = document.getElementById('line-numbers');
+const output = document.getElementById('output');
+const histList = document.getElementById('hist-list');
 
-let targetMode = "bg";
-const STORAGE_KEY = "my_code_history";
-const CLOUD_LINKS_KEY = "cloud_links";
-let currentVersion = null;
-let autoRunTimeout = null;
-const path = location.pathname.slice(1);
-const isViewMode = !!path;
+// ===== KEYS =====
+const LOCAL_KEY = 'local_v';
+const CLOUD_KEY = 'cloudSavedProjects';
+const LOCAL_LIMIT_BYTES = 1024 * 1024 * 1024;
+const CLOUD_MAX_COUNT = 5;
+const CLOUD_WINDOW_MS = 2 * 60 * 60 * 1000;
 
-// --- LINE NUMBERS LOGIC ---
-function updateLineNumbers() {
-  const lines = codeInput.value.split('\n').length;
-  let numbers = '';
-  for (let i = 1; i <= lines; i++) {
-    numbers += i + '<br>';
-  }
-  lineNumbers.innerHTML = numbers;
-  
-  // Sync scroll between textarea and line numbers
+// ===== CLOCK =====
+function updateClock() {
+  document.getElementById('live-clock').textContent = new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+
+// ===== EDITOR SYNC =====
+function syncEditor() {
+  const lines = (codeInput.value.match(/\n/g) || []).length + 1;
+  lineNumbers.innerHTML = Array.from({length: lines}, (_,i)=>i+1).join('<br>');
   lineNumbers.scrollTop = codeInput.scrollTop;
-}
-
-// Sync scroll
-codeInput.addEventListener('scroll', () => {
-  lineNumbers.scrollTop = codeInput.scrollTop;
-});
-
-// --- AUTO RUN LOGIC ---
-function updateAutoRunIndicator() {
-  if (autoRunCheckbox.checked) {
-    autoRunIndicator.style.display = 'block';
-  } else {
-    autoRunIndicator.style.display = 'none';
+  if (document.getElementById('auto-run').checked) {
+    output.srcdoc = codeInput.value;
   }
 }
+codeInput.addEventListener('input', syncEditor);
+codeInput.addEventListener('scroll', () => lineNumbers.scrollTop = codeInput.scrollTop);
 
-function autoRunCode() {
-  if (autoRunCheckbox.checked) {
-    if (autoRunTimeout) {
-      clearTimeout(autoRunTimeout);
-    }
-    
-    autoRunTimeout = setTimeout(() => {
-      runCode();
-    }, 500);
-  }
+// ===== LOCAL FUNCTIONS =====
+function getLocalSizeBytes() {
+  const str = localStorage.getItem(LOCAL_KEY);
+  return str ? new Blob([str]).size : 0;
 }
 
-function runCode() { 
-  document.getElementById("preview-message").style.display = 'none';
-  output.srcdoc = codeInput.value; 
+function updateLocalUI() {
+  const bytes = getLocalSizeBytes();
+  const percent = Math.min(100, (bytes / LOCAL_LIMIT_BYTES) * 100);
+  document.getElementById('local-fill').style.width = percent + '%';
+  const arr = JSON.parse(localStorage.getItem(LOCAL_KEY)) || [];
+  document.getElementById('local-count').textContent = arr.length;
 }
 
-// --- INITIALIZATION ---
-if (isViewMode) {
-  document.querySelector('.controls').style.display = 'none';
-  document.querySelector('.editor').style.display = 'none';
-  document.getElementById('history-panel').style.display = 'none';
-  document.body.style.padding = '0';
-  document.getElementById('output-container').style.borderRadius = '0';
-}
-
-// --- HISTORY LOGIC ---
-function getHistory() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-
-function renderHistory() {
-  const history = getHistory();
-  histList.innerHTML = "";
-  
-  if (history.length === 0) {
-    histList.innerHTML = '<div style="color:#666; font-size:11px; text-align:center;">No versions</div>';
+function saveLocal() {
+  const current = getLocalSizeBytes();
+  const addedEst = new Blob([JSON.stringify({code:codeInput.value,time:''})]).size * 1.3;
+  if (current + addedEst > LOCAL_LIMIT_BYTES) {
+    alert(`Local limit cross! Current: ${ (current / 1024**2).toFixed(1) } MB`);
     return;
   }
-  
-  history.forEach((code, index) => {
-    const item = document.createElement("div");
-    item.className = `hist-item ${currentVersion === index ? 'active' : ''}`;
-    
-    const numSpan = document.createElement("div");
-    numSpan.className = "hist-num";
-    numSpan.textContent = index + 1;
-    
-    item.appendChild(numSpan);
-    
+  let arr = JSON.parse(localStorage.getItem(LOCAL_KEY)) || [];
+  arr.push({code: codeInput.value, time: new Date().toLocaleString()});
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(arr));
+  renderLocal();
+  renderFullLocalHistory();
+  updateLocalUI();
+  alert('Saved locally');
+}
+
+function renderLocal() {
+  const arr = JSON.parse(localStorage.getItem(LOCAL_KEY)) || [];
+  histList.innerHTML = '';
+  arr.forEach((v,i) => {
+    const item = document.createElement('div');
+    item.className = `hist-item${i === arr.length-1 ? ' active' : ''}`;
+    item.textContent = i+1;
     item.onclick = () => {
-      codeInput.value = code;
-      runCode();
-      updateLineNumbers(); // Update line numbers when loading code
-      document.querySelectorAll('.hist-item').forEach(el => el.classList.remove('active'));
+      codeInput.value = v.code;
+      syncEditor();
+      histList.querySelectorAll('.hist-item').forEach(e=>e.classList.remove('active'));
       item.classList.add('active');
-      currentVersion = index;
     };
-    
     histList.appendChild(item);
   });
 }
 
-// --- NEW EDITOR FUNCTION ---
-function newEditor() {
-  if (codeInput.value.trim() !== "" && !confirm("Current code will be cleared. Create new editor?")) {
+function renderFullLocalHistory() {
+  const container = document.getElementById('local-history-container');
+  const arr = JSON.parse(localStorage.getItem(LOCAL_KEY)) || [];
+  if (!arr.length) {
+    container.innerHTML = '<div style="text-align:center; color:#777; padding:15px;">No local versions saved.</div>';
     return;
   }
-  
-  codeInput.value = "";
-  codeInput.style.backgroundColor = "#ffffff";
-  codeInput.style.backgroundImage = "none";
-  codeInput.style.color = "#000000";
-  output.srcdoc = "";
-  document.getElementById("preview-message").style.display = 'block';
-  
-  currentVersion = null;
-  renderHistory();
-  updateLineNumbers(); // Update line numbers
-  
-  codeInput.focus();
-}
+  container.innerHTML = '';
+  arr.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'local-hist-item';
 
-// --- LOCAL SAVE ---
-function saveLocalHistory() {
-  const code = codeInput.value;
-  if(!code.trim()) {
-    alert("Please write some code first!");
-    return;
-  }
-  
-  const h = getHistory(); 
-  h.push(code);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(h));
-  renderHistory();
-  
-  currentVersion = h.length - 1;
-  setTimeout(() => {
-    renderHistory();
-  }, 100);
-  
-  alert("✅ Local version saved as Version " + h.length);
-}
-
-// --- CLOUD SAVE ---
-function saveToCloud() {
-  const code = codeInput.value;
-  if (!code.trim()) {
-    alert("Please write some code first!");
-    return;
-  }
-  
-  const note = prompt("Cloud save ke liye note likhein:", `My Project ${new Date().toLocaleDateString()}`);
-  if (note === null || note.trim() === "") return;
-
-  const key = CryptoJS.lib.WordArray.random(32 / 8).toString();
-  const encrypted = CryptoJS.AES.encrypt(code, key).toString();
-  
-  fetch('/api/save', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({encrypted})
-  }).then(res => res.json()).then(data => {
-    const id = data.id;
-    const link = `${location.origin}/${id}#key=${key}`;
-    const timestamp = new Date().toLocaleString();
-    
-    let links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
-    links.unshift({id, link, note: note || "Untitled", date: timestamp});
-    localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(links));
-    alert("✅ Cloud Link Saved Successfully!\n\nNote: " + note);
-  }).catch(err => {
-    const id = 'demo_' + Date.now();
-    const link = `${location.origin}/?demo=${id}#key=${key}`;
-    const timestamp = new Date().toLocaleString();
-    
-    let links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
-    links.unshift({id, link, note: note || "Untitled", date: timestamp});
-    localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(links));
-    alert("✅ Cloud Link Saved (Demo Mode)!\n\nNote: " + note + "\n\nLink for demo: " + link);
-  });
-}
-
-// --- RENDER ALL HISTORY (LOCAL + CLOUD) ---
-function renderAllHistory() {
-  const localHistory = getHistory();
-  const cloudLinks = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
-  allHistoryContainer.innerHTML = "";
-
-  if (localHistory.length === 0 && cloudLinks.length === 0) {
-    allHistoryContainer.innerHTML = "<p style='color:#aaa; text-align:center;'>No history found.</p>";
-    return;
-  }
-
-  const allItems = [];
-
-  // Add local history items (GREEN)
-  localHistory.forEach((code, index) => {
-    const note = `Version ${index + 1}`;
-    const preview = code.substring(0, 100) + (code.length > 100 ? "..." : "");
-    allItems.push({
-      type: 'local',
-      id: index,
-      note: note,
-      preview: preview,
-      date: "Not dated",
-      code: code
-    });
-  });
-
-  // Add cloud history items (YELLOW)
-  cloudLinks.forEach((link, index) => {
-    allItems.push({
-      type: 'cloud',
-      id: index,
-      note: link.note,
-      preview: "Cloud Saved Version",
-      date: link.date,
-      link: link.link
-    });
-  });
-
-  // Sort by date (newest first)
-  allItems.sort((a, b) => {
-    if (a.date === "Not dated" && b.date === "Not dated") return 0;
-    if (a.date === "Not dated") return 1;
-    if (b.date === "Not dated") return -1;
-    return new Date(b.date) - new Date(a.date);
-  });
-
-  // Render all items
-  allItems.forEach((item, index) => {
-    const div = document.createElement("div");
-    div.className = `history-item ${item.type === 'local' ? 'history-local' : 'history-cloud'}`;
-    
-    let actionsHTML = "";
-    if (item.type === 'local') {
-      actionsHTML = `
-        <button onclick="loadCodeFromHistory('${encodeURIComponent(item.code)}')" style="background:#2196f3; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Load</button>
-        <button onclick="deleteLocalHistory(${item.id})" style="background:#f44336; color:white; font-size:10px; padding:3px 8px;">Delete</button>
-      `;
+    const codeSizeInBytes = new Blob([item.code]).size;
+    let sizeText = '';
+    if (codeSizeInBytes < 1024) {
+      sizeText = `${codeSizeInBytes} B`;
+    } else if (codeSizeInBytes < 1024 * 1024) {
+      sizeText = `${(codeSizeInBytes / 1024).toFixed(2)} KB`;
     } else {
-      actionsHTML = `
-        <button onclick="openLink('${item.link}')" style="background:#2196f3; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Open Link</button>
-        <button onclick="copyLink('${item.link}')" style="background:#009688; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Copy Link</button>
-        <button onclick="deleteCloudHistory(${item.id})" style="background:#f44336; color:white; font-size:10px; padding:3px 8px;">Delete</button>
-      `;
+      sizeText = `${(codeSizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
     }
 
-    div.innerHTML = `
-      <div class="history-type ${item.type}">${item.type.toUpperCase()}</div>
-      <div class="history-note">${item.note}</div>
-      <div class="history-preview">${item.preview}</div>
-      <div class="history-date">📅 ${item.date}</div>
-      <div style="margin-top:8px; text-align:right;">
-        ${actionsHTML}
-      </div>
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'local-hist-info';
+    infoDiv.innerHTML = `
+      <div><strong>#${index+1}</strong> · ${item.time || 'unknown'}</div>
+      <div class="local-hist-preview">${item.code.substring(0,50)}${item.code.length>50?'…':''}</div>
+      <div style="color:#4caf50; font-size:10px;">📄 ${sizeText}</div>
     `;
-    allHistoryContainer.appendChild(div);
-  });
-}
-
-// --- NEW: Open Link Function ---
-window.openLink = (link) => {
-  window.open(link, '_blank');
-};
-
-// --- ALL HISTORY FUNCTIONS ---
-window.loadCodeFromHistory = (encodedCode) => {
-  const code = decodeURIComponent(encodedCode);
-  codeInput.value = code;
-  runCode();
-  updateLineNumbers(); // Update line numbers
-  closeModal();
-  
-  const history = getHistory();
-  const index = history.indexOf(code);
-  if (index !== -1) {
-    currentVersion = index;
-    renderHistory();
-  }
-  
-  alert("Code loaded successfully!");
-};
-
-window.copyLink = (link) => {
-  navigator.clipboard.writeText(link).then(() => {
-    alert("Link copied to clipboard!");
-  });
-};
-
-window.deleteLocalHistory = (index) => {
-  const h = getHistory();
-  h.splice(index, 1);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(h));
-  renderHistory();
-  renderAllHistory();
-};
-
-window.deleteCloudHistory = (index) => {
-  let links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY));
-  links.splice(index, 1);
-  localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(links));
-  renderCloudLinks();
-  renderAllHistory();
-};
-
-// --- CLOUD LINKS ---
-function renderCloudLinks() {
-  const links = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY)) || [];
-  linksContainer.innerHTML = links.length === 0 ? "<p style='color:#aaa;'>No links yet.</p>" : "";
-  
-  links.forEach((l, index) => {
-    const div = document.createElement("div");
-    div.className = "cloud-link-item";
-    div.innerHTML = `
-      <div class="cloud-note">${l.note}</div>
-      <div class="cloud-date">📅 Created: ${l.date}</div>
-      <button onclick="openLink('${l.link}')" style="background:#2196f3; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Open Link</button>
-      <button onclick="copyLink('${l.link}')" style="background:#009688; color:white; font-size:10px; padding:3px 8px; margin-right:5px;">Copy Link</button>
-      <button onclick="delCloud(${index})" style="background:#f44336; color:white; font-size:10px; padding:3px 8px;">Delete</button>
-    `;
-    linksContainer.appendChild(div);
-  });
-}
-
-window.delCloud = (i) => {
-  let l = JSON.parse(localStorage.getItem(CLOUD_LINKS_KEY));
-  l.splice(i, 1);
-  localStorage.setItem(CLOUD_LINKS_KEY, JSON.stringify(l));
-  renderCloudLinks();
-  renderAllHistory();
-};
-
-// --- UI CONTROLS ---
-function openModal(mode) {
-  targetMode = mode;
-  modal.classList.remove("hidden");
-  colorPickerSection.classList.remove("hidden");
-  bgOptions.classList.add("hidden");
-  linksDisplaySection.classList.add("hidden");
-  allHistorySection.classList.add("hidden");
-
-  if (mode === 'bg') {
-    document.getElementById("modalTitle").innerText = "Editor Style";
-    bgOptions.classList.remove("hidden");
-  } else if (mode === 'links') {
-    document.getElementById("modalTitle").innerText = "My Subdomain History";
-    colorPickerSection.classList.add("hidden");
-    linksDisplaySection.classList.remove("hidden");
-    renderCloudLinks();
-  } else if (mode === 'all-history') {
-    document.getElementById("modalTitle").innerText = "All History (Local + Cloud)";
-    colorPickerSection.classList.add("hidden");
-    allHistorySection.classList.remove("hidden");
-    renderAllHistory();
-  }
-}
-
-function closeModal() { modal.classList.add("hidden"); }
-
-// Event Listeners
-if (!isViewMode) {
-  // New Editor Button
-  document.getElementById("new-btn").onclick = newEditor;
-  
-  // Auto Run checkbox change
-  autoRunCheckbox.addEventListener('change', function() {
-    updateAutoRunIndicator();
-    if (this.checked) {
-      runCode();
-    }
-  });
-  
-  // Code input listener for auto run and line numbers
-  codeInput.addEventListener('input', function() {
-    autoRunCode();
-    updateLineNumbers();
-  });
-  
-  // Initialize auto run indicator and line numbers
-  updateAutoRunIndicator();
-  updateLineNumbers();
-  
-  // All History Button
-  document.getElementById("all-history-btn").onclick = () => openModal('all-history');
-  
-  // Save Local History
-  document.getElementById("save-btn").onclick = saveLocalHistory;
-  
-  // Cloud Save Button
-  document.getElementById("cloud-save-btn").onclick = saveToCloud;
-
-  // Run Button
-  document.getElementById("run-btn").onclick = runCode;
-  
-  // Other buttons
-  document.getElementById("bgPickBtn").onclick = () => openModal('bg');
-  document.getElementById("textPickBtn").onclick = () => openModal('text');
-  document.getElementById("show-links").onclick = () => openModal('links');
-
-  document.getElementById("solidPicker").oninput = (e) => {
-    if(targetMode === "bg") {
-      codeInput.style.backgroundImage = "none";
-      codeInput.style.backgroundColor = e.target.value;
-      lineNumbers.style.backgroundColor = e.target.value;
-    } else { 
-      codeInput.style.color = e.target.value; 
-    }
-  };
-
-  document.getElementById("gradSelect").onchange = (e) => {
-    codeInput.style.backgroundImage = e.target.value;
-    codeInput.style.backgroundColor = "transparent";
-    lineNumbers.style.backgroundImage = e.target.value;
-    lineNumbers.style.backgroundColor = "transparent";
-  };
-
-  document.getElementById("bgImage").onchange = (e) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      codeInput.style.backgroundImage = `url('${ev.target.result}')`;
-      lineNumbers.style.backgroundImage = `url('${ev.target.result}')`;
+    infoDiv.onclick = () => {
+      codeInput.value = item.code;
+      syncEditor();
+      closeLocalHistoryModal();
+      document.querySelectorAll('.hist-item').forEach((el,i)=>{
+        el.classList.toggle('active', i === index);
+      });
     };
-    reader.readAsDataURL(e.target.files[0]);
-  };
 
-  document.getElementById("desktop-view").onclick = () => {
-    device.classList.replace('mobile', 'desktop');
-  };
-  document.getElementById("mobile-view").onclick = () => {
-    device.classList.replace('desktop', 'mobile');
-  };
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Del';
+    delBtn.className = 'local-hist-delete';
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm(`Delete version #${index+1}?`)) {
+        let newArr = arr.filter((_, i) => i !== index);
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(newArr));
+        renderLocal();
+        renderFullLocalHistory();
+        updateLocalUI();
+      }
+    };
 
-  // Resizer
-  let isDragging = false;
-  document.getElementById("resizer").onmousedown = () => isDragging = true;
-  document.onmousemove = (e) => {
-    if (isDragging) document.querySelector(".editor").style.width = e.clientX + "px";
-  };
-  document.onmouseup = () => isDragging = false;
+    div.appendChild(infoDiv);
+    div.appendChild(delBtn);
+    container.appendChild(div);
+  });
 }
 
-window.onload = () => {
-  renderHistory();
-  updateLineNumbers(); // Initialize line numbers
-  
-  if (path) {
-    fetch(`/api/get/${path}`).then(r => r.json()).then(d => {
-      const key = location.hash.substring(5);
-      const dec = CryptoJS.AES.decrypt(d.encrypted, key).toString(CryptoJS.enc.Utf8);
-      codeInput.value = dec;
-      runCode();
-      updateLineNumbers();
+function showLocalHistoryModal() {
+  renderFullLocalHistory();
+  document.getElementById('localHistoryModal').classList.remove('hidden');
+}
+function closeLocalHistoryModal() {
+  document.getElementById('localHistoryModal').classList.add('hidden');
+}
+
+// ===== CLOUD FUNCTIONS =====
+async function updateCloudUI() {
+  try {
+    const r = await fetch('/api/cloud-stats');
+    if (!r.ok) throw new Error();
+    const {recentCount} = await r.json();
+    const pct = Math.min(100, (recentCount / CLOUD_MAX_COUNT) * 100);
+    document.getElementById('cloud-count').textContent = recentCount;
+    document.getElementById('cloud-fill').style.width = pct + '%';
+  } catch {
+    const arr = JSON.parse(localStorage.getItem(CLOUD_KEY)) || [];
+    const now = Date.now();
+    const recent = arr.filter(x => x.timestamp > now - CLOUD_WINDOW_MS);
+    document.getElementById('cloud-count').textContent = recent.length;
+    document.getElementById('cloud-fill').style.width = (recent.length / CLOUD_MAX_COUNT * 100) + '%';
+  }
+}
+
+async function saveCloud() {
+  const userCode = codeInput.value.trim();
+  if (!userCode) return alert('Kuch likho pehle...');
+
+  const key = CryptoJS.lib.WordArray.random(16).toString();
+  const encrypted = CryptoJS.AES.encrypt(userCode, key).toString();
+
+  if (encrypted.length > 1024*1024) return alert('Max 1 MB allowed');
+
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        encrypted,
+        deviceInfo: {
+          browser: navigator.userAgent,
+          platform: navigator.platform,
+          screen: `${screen.width}x${screen.height}`
+        }
+      })
     });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+
+    const link = `${location.origin}/view/${data.id}#key=${key}`;
+
+    let arr = JSON.parse(localStorage.getItem(CLOUD_KEY)) || [];
+    arr.unshift({id: data.id, link, time: new Date().toLocaleString(), timestamp: Date.now()});
+    localStorage.setItem(CLOUD_KEY, JSON.stringify(arr));
+
+    updateCloudUI();
+    alert(`Cloud saved!\n\n${link}`);
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function showCloudHistory() {
+  const cont = document.getElementById('links-container');
+  cont.innerHTML = '';
+  const arr = JSON.parse(localStorage.getItem(CLOUD_KEY)) || [];
+  if (!arr.length) {
+    cont.innerHTML = '<div style="text-align:center;color:#777;padding:20px 0;">No cloud saves</div>';
+    return;
+  }
+  arr.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cloud-item';
+    div.innerHTML = `
+      <div class="title">Project • ${item.id.slice(-6)}</div>
+      <div class="time">${item.time}</div>
+      <div class="link">${item.link.substring(0,40)}...</div>
+    `;
+    div.onclick = () => window.open(item.link, '_blank');
+    cont.appendChild(div);
+  });
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+}
+
+// ===== LEARNING TOOLS FUNCTIONALITY =====
+const learningContainer = document.getElementById('learning-container');
+const learningFrame = document.getElementById('learning-frame');
+const learningTitle = document.getElementById('learning-title');
+const closeLearning = document.getElementById('close-learning');
+
+// File mapping with short names
+const learningFiles = {
+  'html-learn-btn': { file: 'htmllern.html', title: '📄 HTML Learning', color: '#e44d26' },
+  'tailwind-learn-btn': { file: 'tailwindlern.html', title: '🌊 Tailwind Learning', color: '#38bdf8' },
+  'tailwind-compiler-btn': { file: 'tailwindcompiler.html', title: '⚙️ Tailwind Compiler', color: '#0ea5e9' },
+  'react-compiler-btn': { file: 'reactcompiler.html', title: '⚛️ React Compiler', color: '#61dafb' },
+  'api-test-btn': { file: 'apitest.html', title: '🔬 API Test', color: '#e91e63' }
+};
+
+// Add click handlers for all learning buttons
+Object.keys(learningFiles).forEach(btnId => {
+  document.getElementById(btnId).addEventListener('click', () => {
+    const fileInfo = learningFiles[btnId];
+    learningFrame.src = fileInfo.file;
+    learningTitle.textContent = fileInfo.title;
+    learningTitle.style.color = fileInfo.color;
+    learningContainer.classList.remove('hidden');
+  });
+});
+
+closeLearning.addEventListener('click', () => {
+  learningContainer.classList.add('hidden');
+  learningFrame.src = 'about:blank';
+});
+
+// ===== BUTTON LISTENERS =====
+document.getElementById('save-local-btn').onclick = saveLocal;
+document.getElementById('cloud-btn').onclick = saveCloud;
+document.getElementById('links-btn').onclick = () => {
+  document.getElementById('linksModal').classList.remove('hidden');
+  showCloudHistory();
+};
+document.getElementById('local-history-btn').onclick = showLocalHistoryModal;
+
+// ===== DARK/LIGHT TOGGLE =====
+const bodyEl = document.body;
+const themeToggle = document.getElementById('theme-toggle-btn');
+themeToggle.addEventListener('click', () => {
+  bodyEl.classList.toggle('light-mode');
+  themeToggle.textContent = bodyEl.classList.contains('light-mode') ? '☀️' : '🌓';
+});
+
+// ===== COLOR PICKER =====
+const colorModal = document.getElementById('colorPickerModal');
+const colorTitle = document.getElementById('colorPickerTitle');
+const colorInput = document.getElementById('colorPickerInput');
+const applyBtn = document.getElementById('applyColorBtn');
+const cancelBtn = document.getElementById('cancelColorBtn');
+let activeTarget = 'bg';
+
+document.getElementById('editor-bg-btn').addEventListener('click', () => {
+  activeTarget = 'bg';
+  colorTitle.innerText = 'Choose editor background';
+  colorInput.value = '#2d2d2d';
+  colorModal.classList.remove('hidden');
+});
+document.getElementById('text-color-btn').addEventListener('click', () => {
+  activeTarget = 'text';
+  colorTitle.innerText = 'Choose text color';
+  colorInput.value = '#e0e0e0';
+  colorModal.classList.remove('hidden');
+});
+applyBtn.addEventListener('click', () => {
+  const chosen = colorInput.value;
+  if (activeTarget === 'bg') {
+    document.querySelector('.editor').style.backgroundColor = chosen;
+    codeInput.style.backgroundColor = chosen;
+    document.querySelector('.line-numbers').style.backgroundColor = chosen;
   } else {
-    document.getElementById("preview-message").style.display = 'block';
+    codeInput.style.color = chosen;
+  }
+  colorModal.classList.add('hidden');
+});
+cancelBtn.addEventListener('click', () => {
+  colorModal.classList.add('hidden');
+});
+
+// ===== NEW & RUN BUTTONS =====
+document.getElementById('new-btn').addEventListener('click', () => {
+  codeInput.value = '';
+  syncEditor();
+});
+document.getElementById('run-btn').addEventListener('click', () => {
+  output.srcdoc = codeInput.value;
+});
+
+// ===== RESIZER =====
+const resizer = document.getElementById('resizer');
+const editor = document.querySelector('.editor');
+let isResizing = false;
+resizer.addEventListener('mousedown', (e) => {
+  isResizing = true;
+  document.addEventListener('mousemove', resize);
+  document.addEventListener('mouseup', stopResize);
+});
+function resize(e) {
+  if (!isResizing) return;
+  const containerRect = document.getElementById('main-container').getBoundingClientRect();
+  let newWidth = e.clientX - containerRect.left;
+  if (newWidth < 180) newWidth = 180;
+  if (newWidth > containerRect.width - 180) newWidth = containerRect.width - 180;
+  editor.style.width = newWidth + 'px';
+  editor.style.flex = 'none';
+}
+function stopResize() {
+  isResizing = false;
+  document.removeEventListener('mousemove', resize);
+  document.removeEventListener('mouseup', stopResize);
+}
+
+// ===== VIEW MODE LOGIC =====
+async function checkViewMode() {
+  const path = location.pathname.split('/');
+  if (path[1] === 'view' && path[2]) {
+    const id = path[2];
+    const key = location.hash.replace('#key=', '');
+    
+    if (!key) {
+      document.body.innerHTML = '<h2 style="color:red;padding:20px;">Error: No decryption key found</h2>';
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/get/${id}`);
+      if (!res.ok) throw new Error('Project not found');
+      
+      const data = await res.json();
+      
+      const decrypted = CryptoJS.AES.decrypt(data.encrypted, key).toString(CryptoJS.enc.Utf8);
+      if (!decrypted) throw new Error('Invalid key');
+      
+      document.body.innerHTML = decrypted;
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.background = '#fff';
+      
+    } catch (err) {
+      document.body.innerHTML = `<h2 style="color:red;padding:20px;">Error: ${err.message}</h2>`;
+    }
+  }
+}
+
+// ===== WINDOW ONLOAD =====
+window.onload = () => {
+  const path = location.pathname.split('/');
+  if (path[1] === 'view' && path[2]) {
+    checkViewMode();
+  } else {
+    updateClock();
+    renderLocal();
+    updateLocalUI();
+    updateCloudUI();
+    syncEditor();
+    setInterval(updateCloudUI, 30000);
   }
 };
 </script>

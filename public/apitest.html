@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Visual API Duplicator · Grouped Duplicates · Hide/Show</title>
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --nav-width: 200px;
+            --bg-light: #f4f7fc;
+            --bg-dark: #1a1e24;
+            --card-light: #ffffff;
+            --card-dark: #2a2f38;
+            --text-light: #1e2a3a;
+            --text-dark: #f0f4fa;
+            --text-muted-light: #5e6e84;
+            --text-muted-dark: #a0b3cc;
+            --border-light: #dee6f0;
+            --border-dark: #404854;
+            --response-bg-light: #1e262f;
+            --response-bg-dark: #0b0f14;
+            --response-text-light: #c0d0e0;
+            --response-text-dark: #e0e8f0;
+            --line-login: #ff6b6b;
+            --line-register: #4ecdc4;
+            --line-otp: #ffe66d;
+            --line-verify: #b380aa;
+            --line-profile: #6c5ce7;
+            --line-update: #f9ca7f;
+            --line-refresh: #a3c4f3;
+            --line-forget: #cfb784;
+            --line-logout: #ff9f1c;
+            --line-reset: #2e86ab;
+            --line-default: #a0a0a0;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            transition: background-color 0.2s, color 0.2s;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+        }
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+        
+        /* Dark mode text fixes */
+        body.dark-mode .api-row {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        body.dark-mode .api-row.hidden {
+            opacity: 0.3;
+            background: #1a1f26;
+        }
+        body.dark-mode .api-nav {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        body.dark-mode .nav-item {
+            color: var(--text-dark);
+        }
+        body.dark-mode .nav-item.hidden {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        body.dark-mode .nav-header {
+            color: var(--text-muted-dark);
+            border-bottom-color: #3a4355;
+        }
+        body.dark-mode .url-box {
+            background: #1e2530;
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        body.dark-mode .auth-panel {
+            background: #232933;
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        body.dark-mode .request-textarea {
+            background: #1e2530;
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+        body.dark-mode .global-base {
+            background: #2d3440;
+            color: var(--text-dark);
+        }
+        body.dark-mode .method-badge {
+            color: inherit;
+        }
+        body.dark-mode .method-post {
+            background: #1a3150;
+            color: #a0c8ff;
+        }
+        body.dark-mode .method-get {
+            background: #1a3a2a;
+            color: #8fdcb0;
+        }
+        body.dark-mode .method-put {
+            background: #3f351f;
+            color: #ffe29c;
+        }
+        body.dark-mode .method-delete {
+            background: #3f2320;
+            color: #ffb4aa;
+        }
+        body.dark-mode .auth-collapse-btn {
+            background: #2d3440;
+            border-color: #4d5a70;
+            color: #c7dbff;
+        }
+        body.dark-mode .duplicate-btn {
+            background: #2d3b54;
+            border-color: #5a6f8f;
+            color: #c7dbff;
+        }
+        body.dark-mode .response-pre {
+            background: var(--response-bg-dark);
+            color: var(--response-text-dark);
+        }
+        body.dark-mode .text-secondary {
+            color: var(--text-muted-dark) !important;
+        }
+        body.dark-mode .form-select,
+        body.dark-mode .form-control {
+            background-color: #1e2530;
+            border-color: #4a5568;
+            color: var(--text-dark);
+        }
+        body.dark-mode .btn-outline-secondary {
+            color: var(--text-dark);
+            border-color: #5a6f8f;
+        }
+        body.dark-mode .btn-outline-primary {
+            color: #a0c8ff;
+            border-color: #3a6ea5;
+        }
+        body.dark-mode .btn-outline-danger {
+            color: #ffb4aa;
+            border-color: #8b3a3a;
+        }
+        body.dark-mode .group-separator {
+            border-top: 2px dashed #4a5568;
+        }
+        
+        .app-layout {
+            display: flex;
+            gap: 1.2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .api-nav {
+            width: var(--nav-width);
+            flex-shrink: 0;
+            background: white;
+            border-radius: 24px;
+            padding: 1rem 0.3rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+            max-height: calc(100vh - 2rem);
+            overflow-y: auto;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: background-color 0.2s;
+        }
+        .nav-header {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c7e9a;
+            padding: 0 0.8rem 0.6rem 0.8rem;
+            border-bottom: 1px solid #e2e9f2;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.8rem;
+            margin: 0.1rem 0.2rem;
+            border-radius: 30px;
+            color: #2f3f57;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border-left: 4px solid transparent;
+        }
+        .nav-item i { margin-right: 8px; width: 18px; }
+        .nav-item:hover { background: #e3ecf7; }
+        body.dark-mode .nav-item:hover { background: #364153; }
+        .nav-item.active { background: #0d6efd; color: white; }
+        .nav-item.hidden { opacity: 0.5; text-decoration: line-through; }
+        
+        .content-area { flex-grow: 1; min-width: 0; }
+        
+        .api-row {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.04);
+            border-left-width: 6px;
+            border-left-style: solid;
+            transition: all 0.2s;
+        }
+        .api-row.hidden {
+            display: none;
+        }
+        .api-row[data-group="login"] { border-left-color: #ff6b6b; }
+        .api-row[data-group="register"] { border-left-color: #4ecdc4; }
+        .api-row[data-group="otp"] { border-left-color: #ffe66d; }
+        .api-row[data-group="verify"] { border-left-color: #b380aa; }
+        .api-row[data-group="profile"] { border-left-color: #6c5ce7; }
+        .api-row[data-group="update"] { border-left-color: #f9ca7f; }
+        .api-row[data-group="refresh"] { border-left-color: #a3c4f3; }
+        .api-row[data-group="forget"] { border-left-color: #cfb784; }
+        .api-row[data-group="logout"] { border-left-color: #ff9f1c; }
+        .api-row[data-group="reset"] { border-left-color: #2e86ab; }
+        .api-row[data-group="default"] { border-left-color: #a0a0a0; }
+        
+        .api-group-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .api-group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 5px 15px;
+            background: rgba(0,0,0,0.03);
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        body.dark-mode .api-group-header {
+            background: rgba(255,255,255,0.05);
+        }
+        .api-group-header i {
+            font-size: 1.2rem;
+        }
+        .api-group-header .group-toggle {
+            transition: transform 0.2s;
+        }
+        .api-group-header.collapsed .group-toggle {
+            transform: rotate(-90deg);
+        }
+        .api-group-content {
+            transition: all 0.2s;
+        }
+        .api-group-content.collapsed {
+            display: none;
+        }
+        .duplicate-connector {
+            position: relative;
+        }
+        .duplicate-connector:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 100%;
+            height: 20px;
+            width: 2px;
+            background: var(--line-default);
+            opacity: 0.3;
+        }
+        
+        .method-badge {
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 5px 16px;
+            border-radius: 40px;
+            min-width: 80px;
+            text-align: center;
+            display: inline-block;
+        }
+        .method-post { background: #e7f3ff; color: #084298; }
+        .method-get { background: #e2f1e5; color: #0a4e2e; }
+        .method-put { background: #fff2db; color: #664d03; }
+        .method-delete { background: #fae1df; color: #94170c; }
+        
+        .url-box {
+            background: #f7fafd;
+            padding: 8px 18px;
+            border-radius: 40px;
+            border: 1px solid #e1eaf2;
+            font-family: 'SF Mono', monospace;
+        }
+        .auth-panel {
+            background: #f8fbfe;
+            border-radius: 20px;
+            padding: 1rem 1.3rem;
+            margin: 1rem 0;
+            border: 1px solid #dae2ed;
+        }
+        .response-pre {
+            background: var(--response-bg-light);
+            color: var(--response-text-light);
+            padding: 1.2rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            min-height: 80px;
+            max-height: none;
+            height: auto;
+            overflow: visible;
+            border: 1px solid #303b48;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .request-textarea {
+            background: #fafcff;
+            border-radius: 20px;
+            padding: 12px 16px;
+            border: 2px solid #e2ebf5;
+            width: 100%;
+            resize: vertical;
+            min-height: 80px;
+            max-height: none;
+            height: auto;
+            overflow-y: hidden;
+            font-family: monospace;
+        }
+        .port-input {
+            max-width: 130px;
+            border-radius: 40px;
+            border: 2px solid #dee2e6;
+            padding: 8px 16px;
+        }
+        .btn-send {
+            border-radius: 40px;
+            padding: 10px 28px;
+            font-weight: 600;
+        }
+        .global-base {
+            background: #e2eaf3;
+            border-radius: 40px;
+            padding: 6px 20px;
+            font-weight: 500;
+        }
+        .theme-toggle {
+            border-radius: 40px;
+            padding: 8px 18px;
+            background: white;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+        }
+        body.dark-mode .theme-toggle {
+            background: #2d3440;
+            border-color: #4d5a70;
+            color: white;
+        }
+        .refresh-all-btn {
+            border-radius: 40px;
+            padding: 8px 20px;
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .refresh-all-btn:hover {
+            background: #5849c2;
+        }
+        .group-badge {
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 30px;
+            background: #e2e8f0;
+            margin-left: 10px;
+        }
+        body.dark-mode .group-badge {
+            background: #364153;
+            color: #e0e8f0;
+        }
+        .action-btn {
+            border-radius: 30px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            margin-left: 4px;
+        }
+        .eye-btn {
+            border-radius: 30px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+        }
+        .group-eye-btn {
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+<!-- top bar with port, theme, and REFRESH ALL button -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4" style="max-width: 1600px; margin: 0 auto;">
+    <div class="d-flex gap-3 align-items-center">
+        <span class="bg-white shadow-sm rounded-5 p-3 d-inline-flex align-items-center px-4" style="background: inherit; backdrop-filter: blur(5px);">
+            <i class="bi bi-diagram-3 text-primary fs-3 me-2"></i>
+            <span class="fw-bold fs-4">GroupDuplicator</span>
+            <span class="badge bg-dark text-white ms-3 px-3 py-2 rounded-pill">grouped duplicates · hide/show</span>
+        </span>
+    </div>
+    <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+        <div class="global-base d-flex align-items-center gap-2">
+            <i class="bi bi-hdd-network-fill"></i>
+            <span>http://localhost</span>
+        </div>
+        <input type="number" id="portInput" class="form-control port-input" value="5000" min="1" max="65535">
+        <button class="theme-toggle" id="themeToggleBtn">
+            <i class="bi bi-sun-fill" id="themeIcon"></i>
+        </button>
+        <button class="refresh-all-btn" id="refreshAllBtn">
+            <i class="bi bi-arrow-counterclockwise"></i> Clear JSON data
+        </button>
+    </div>
+</div>
+
+<!-- main layout -->
+<div class="app-layout">
+    <!-- VERTICAL NAV -->
+    <div class="api-nav" id="verticalNav">
+        <div class="nav-header"><i class="bi bi-list-ul me-1"></i> ENDPOINTS</div>
+        <div id="navItemsContainer"></div>
+        <div class="nav-item" id="addApiNavBtn" style="margin-top: 8px;">
+            <i class="bi bi-plus-circle"></i> Add new
+        </div>
+    </div>
+
+    <!-- content area -->
+    <div class="content-area">
+        <div id="apiGroupsContainer"></div>
+        <div class="text-center mt-4 text-secondary small">
+            <i class="bi bi-palette-fill"></i> Click eye icon to hide/show · Group toggle to collapse duplicates
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // Group colors mapping
+        const GROUP_COLORS = {
+            '🔵 Login': 'login',
+            '📄 Register': 'register',
+            '🏠 OTP': 'otp',
+            '✅ Verify OTP': 'verify',
+            '📊 Profile': 'profile',
+            '🔄 Update': 'update',
+            '📂 Refresh': 'refresh',
+            '💻 Forget': 'forget',
+            '👉 logout': 'logout',
+            '🔒 Reset password': 'reset'
+        };
+
+        // Default APIs with group info
+        const DEFAULT_APIS = [
+            { name: '🔵 Login', method: 'POST', path: '/api/auth/login', description: 'authenticate', body: '{\n  "email": "user@example.com",\n  "password": "123456"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'login', hidden: false },
+            { name: '📄 Register', method: 'POST', path: '/api/auth/register', description: 'sign up', body: '{\n  "username": "test",\n  "email": "test@a.com",\n  "password": "secret"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'register', hidden: false },
+            { name: '🏠 OTP', method: 'POST', path: '/api/auth/otp', description: 'request code', body: '{\n  "phone": "+919999999999"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'otp', hidden: false },
+            { name: '✅ Verify OTP', method: 'POST', path: '/api/auth/verify-otp', description: 'submit OTP', body: '{\n  "email": "zancyverma@gmail.com",\n  "otp": "798269"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'verify', hidden: false },
+            { name: '📊 Profile', method: 'GET', path: '/api/user/profile', description: 'get my profile', body: '', auth: { type: 'bearer', token: '' }, contentType: 'application/json', showAuth: false, group: 'profile', hidden: false },
+            { name: '🔄 Update', method: 'PUT', path: '/api/user/update', description: 'edit profile', body: '{\n  "fullName": "John Doe"\n}', auth: { type: 'bearer', token: '' }, contentType: 'application/json', showAuth: false, group: 'update', hidden: false },
+            { name: '📂 Refresh', method: 'POST', path: '/api/auth/refresh', description: 'new access token', body: '{\n  "refreshToken": "your_refresh_here"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'refresh', hidden: false },
+            { name: '💻 Forget', method: 'POST', path: '/api/auth/forgot', description: 'reset password email', body: '{\n  "email": "forgot@ex.com"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'forget', hidden: false },
+            { name: '👉 logout', method: 'POST', path: '/api/auth/logout', description: 'sign out', body: '', auth: { type: 'bearer', token: '' }, contentType: 'application/json', showAuth: false, group: 'logout', hidden: false },
+            { name: '🔒 Reset password', method: 'POST', path: '/api/auth/reset', description: 'set new password', body: '{\n  "newPassword": "newpass123"\n}', auth: { type: 'none', token: '' }, contentType: 'application/json', showAuth: false, group: 'reset', hidden: false }
+        ];
+
+        function loadApis() {
+            const saved = localStorage.getItem('groupDuplicatorData');
+            if (saved) {
+                try { 
+                    const parsed = JSON.parse(saved);
+                    // Ensure group and hidden fields exist for old data
+                    parsed.forEach(api => {
+                        if (!api.group) {
+                            const baseName = api.name.replace(/\s*\(copy\)\s*/g, '').trim();
+                            api.group = GROUP_COLORS[baseName] || 'default';
+                        }
+                        if (api.hidden === undefined) api.hidden = false;
+                    });
+                    return parsed;
+                } catch (e) {}
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_APIS));
+        }
+
+        function saveApis(apis) {
+            localStorage.setItem('groupDuplicatorData', JSON.stringify(apis));
+        }
+
+        let customApis = loadApis();
+        let responseMap = new Map();
+        let groupCollapsedState = {}; // Track collapsed state per group
+
+        const container = document.getElementById('apiGroupsContainer');
+        const navContainer = document.getElementById('navItemsContainer');
+        const portInput = document.getElementById('portInput');
+        const addApiNavBtn = document.getElementById('addApiNavBtn');
+        const themeToggle = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const refreshAllBtn = document.getElementById('refreshAllBtn');
+
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.classList.remove('bi-sun-fill');
+                themeIcon.classList.add('bi-moon-stars-fill');
+            } else {
+                themeIcon.classList.remove('bi-moon-stars-fill');
+                themeIcon.classList.add('bi-sun-fill');
+            }
+        });
+
+        // GLOBAL REFRESH - clears only JSON body data
+        refreshAllBtn.addEventListener('click', () => {
+            customApis.forEach(api => {
+                api.body = '';
+            });
+            responseMap.clear();
+            saveApis(customApis);
+            renderGroups();
+            renderNav();
+        });
+
+        function buildBaseUrl() {
+            let port = portInput.value.trim();
+            if (!port || isNaN(port) || port <= 0) port = 5000;
+            return `http://localhost:${port}`;
+        }
+
+        function resolveFullUrl(pathOrFull) {
+            const base = buildBaseUrl();
+            if (pathOrFull.startsWith('http://') || pathOrFull.startsWith('https://')) return pathOrFull;
+            if (pathOrFull.startsWith('/')) return base + pathOrFull;
+            return base + '/' + pathOrFull;
+        }
+
+        function renderNav() {
+            let navHtml = '';
+            customApis.forEach((api, idx) => {
+                const displayName = api.name.length > 18 ? api.name.substring(0,16)+'..' : api.name;
+                const groupColor = api.group || 'default';
+                const hiddenClass = api.hidden ? 'hidden' : '';
+                navHtml += `<div class="nav-item ${hiddenClass}" data-nav-index="${idx}" title="${api.name}" style="border-left-color: var(--line-${groupColor});"><i class="bi bi-dot"></i> ${displayName}</div>`;
+            });
+            navContainer.innerHTML = navHtml;
+
+            document.querySelectorAll('.nav-item[data-nav-index]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.navIndex;
+                    const card = document.getElementById(`card-${idx}`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            });
+        }
+
+        function toggleAuthPanel(index) {
+            customApis[index].showAuth = !customApis[index].showAuth;
+            saveApis(customApis);
+            renderGroups();
+            renderNav();
+        }
+
+        function toggleHideApi(index) {
+            customApis[index].hidden = !customApis[index].hidden;
+            saveApis(customApis);
+            renderGroups();
+            renderNav();
+        }
+
+        function toggleGroupHide(group) {
+            // Toggle hide for all APIs in this group
+            const groupApis = customApis.filter(api => api.group === group);
+            const allHidden = groupApis.every(api => api.hidden);
+            const newHiddenState = !allHidden; // If all hidden, show all; if any visible, hide all
+            
+            customApis.forEach(api => {
+                if (api.group === group) {
+                    api.hidden = newHiddenState;
+                }
+            });
+            saveApis(customApis);
+            renderGroups();
+            renderNav();
+        }
+
+        function duplicateApi(index) {
+            const original = customApis[index];
+            const copy = JSON.parse(JSON.stringify(original));
+            copy.name = original.name + ' (copy)';
+            copy.body = '';
+            copy.showAuth = false;
+            copy.group = original.group;
+            copy.hidden = false;
+            
+            customApis.splice(index + 1, 0, copy);
+            
+            const newMap = new Map();
+            for (let [k, v] of responseMap.entries()) {
+                if (k <= index) newMap.set(k, v);
+                else newMap.set(k + 1, v);
+            }
+            responseMap = newMap;
+            
+            saveApis(customApis);
+            renderGroups();
+            renderNav();
+        }
+
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        function renderGroups() {
+            if (!container) return;
+            
+            // Group APIs by their group property
+            const groups = {};
+            customApis.forEach((api, index) => {
+                if (!groups[api.group]) {
+                    groups[api.group] = [];
+                }
+                groups[api.group].push({ ...api, originalIndex: index });
+            });
+
+            let html = '';
+            
+            for (const [group, apis] of Object.entries(groups)) {
+                const groupHidden = apis.every(api => api.hidden);
+                const isCollapsed = groupCollapsedState[group] || false;
+                
+                html += `<div class="api-group-container mb-4" data-group="${group}">`;
+                
+                // Group header with eye icon and toggle
+                html += `<div class="api-group-header d-flex justify-content-between align-items-center ${isCollapsed ? 'collapsed' : ''}" data-group-toggle="${group}">`;
+                html += `<div class="d-flex align-items-center gap-2">`;
+                html += `<i class="bi bi-chevron-down group-toggle"></i>`;
+                html += `<span class="fw-bold fs-6" style="color: var(--line-${group});"><i class="bi bi-palette-fill me-1"></i> ${group.toUpperCase()}</span>`;
+                html += `<span class="badge bg-secondary rounded-pill">${apis.length}</span>`;
+                html += `</div>`;
+                html += `<div class="d-flex gap-2">`;
+                html += `<button class="btn btn-outline-secondary btn-sm group-eye-btn" data-group-eye="${group}">`;
+                html += `<i class="bi ${groupHidden ? 'bi-eye-slash' : 'bi-eye'}"></i> ${groupHidden ? 'Show All' : 'Hide All'}`;
+                html += `</button>`;
+                html += `</div>`;
+                html += `</div>`;
+                
+                // Group content
+                html += `<div class="api-group-content ${isCollapsed ? 'collapsed' : ''}" data-group-content="${group}">`;
+                
+                apis.forEach((api, idxInGroup) => {
+                    const i = api.originalIndex;
+                    const methodLower = api.method.toLowerCase();
+                    const methodClass = `method-${methodLower}`;
+                    
+                    let displayUrl, fullUrl;
+                    if (api.fullUrl) {
+                        fullUrl = api.fullUrl;
+                        displayUrl = fullUrl;
+                    } else {
+                        fullUrl = resolveFullUrl(api.path);
+                        displayUrl = fullUrl;
+                    }
+
+                    const savedResponse = responseMap.get(i) || { text: 'Click "Send" to see response …', status: null };
+                    const bodyValue = api.body || '';
+                    const hiddenClass = api.hidden ? 'hidden' : '';
+
+                    html += `<div class="api-row duplicate-connector ${hiddenClass}" id="card-${i}" data-group="${group}" style="border-left-color: var(--line-${group});">`;
+                    
+                    // Header
+                    html += `<div class="d-flex flex-wrap align-items-center gap-2 mb-2">`;
+                    html += `<span class="method-badge ${methodClass}"><i class="bi bi-${methodLower === 'post' ? 'file-post' : (methodLower === 'get' ? 'cloud-arrow-down' : (methodLower === 'put' ? 'pencil-square' : 'trash3'))}"></i> ${api.method}</span>`;
+                    html += `<span class="fw-semibold fs-5">${api.name}</span>`;
+                    html += `<span class="text-secondary small flex-grow-1">${api.description || ''}</span>`;
+                    
+                    // Duplicate indicator
+                    if (api.name.includes('(copy)')) {
+                        html += `<span class="badge bg-info text-dark"><i class="bi bi-copy"></i> duplicate</span>`;
+                    }
+                    
+                    // Buttons
+                    html += `<div class="btn-group" role="group">`;
+                    html += `<button class="btn btn-outline-warning btn-sm eye-btn" data-eye-index="${i}"><i class="bi ${api.hidden ? 'bi-eye-slash' : 'bi-eye'}"></i></button>`;
+                    html += `<button class="btn btn-outline-secondary btn-sm action-btn auth-collapse-btn" data-toggle-auth="${i}"><i class="bi bi-shield-lock"></i></button>`;
+                    html += `<button class="btn btn-outline-primary btn-sm action-btn duplicate-btn" data-duplicate-index="${i}"><i class="bi bi-files"></i></button>`;
+                    html += `<button class="btn btn-outline-danger btn-sm action-btn remove-btn" data-remove-index="${i}"><i class="bi bi-trash"></i></button>`;
+                    html += `</div>`;
+                    html += `</div>`;
+
+                    // URL row
+                    html += `<div class="d-flex flex-wrap align-items-center gap-2 mb-3">`;
+                    html += `<select class="form-select method-select rounded-pill w-auto border-2" data-method-index="${i}">`;
+                    ['GET','POST','PUT','PATCH','DELETE'].forEach(m => {
+                        html += `<option value="${m}" ${api.method === m ? 'selected' : ''}>${m}</option>`;
+                    });
+                    html += `</select>`;
+                    html += `<input type="text" class="form-control url-box flex-grow-1" value="${api.fullUrl || api.path}" placeholder="/api/... or full URL" data-path-index="${i}">`;
+                    html += `</div>`;
+
+                    // Auth panel
+                    if (api.showAuth) {
+                        html += `<div class="auth-panel">`;
+                        html += `<div class="row g-3 align-items-center">`;
+                        html += `<div class="col-md-5">`;
+                        html += `<label class="fw-semibold small">Authorization:</label>`;
+                        html += `<select class="form-select auth-type-select rounded-pill mt-1" data-auth-type="${i}">`;
+                        html += `<option value="none" ${api.auth.type === 'none' ? 'selected' : ''}>None</option>`;
+                        html += `<option value="bearer" ${api.auth.type === 'bearer' ? 'selected' : ''}>Bearer Token</option>`;
+                        html += `<option value="basic" ${api.auth.type === 'basic' ? 'selected' : ''}>Basic Auth</option>`;
+                        html += `</select>`;
+                        html += `</div>`;
+                        html += `<div class="col-md-7">`;
+                        html += `<label class="fw-semibold small">Token / credentials:</label>`;
+                        html += `<input type="text" class="form-control token-input rounded-pill mt-1" value="${(api.auth.token || '').replace(/</g, '&lt;')}" placeholder="token or user:pass" data-auth-token="${i}">`;
+                        html += `</div>`;
+                        html += `</div>`;
+                        html += `<div class="row mt-3">`;
+                        html += `<div class="col-md-12">`;
+                        html += `<label class="fw-semibold small me-3">Content-Type:</label>`;
+                        html += `<select class="form-select auth-content-type rounded-pill w-50 d-inline-block" data-content-type="${i}">`;
+                        ['application/json','application/x-www-form-urlencoded','multipart/form-data','text/plain'].forEach(ct => {
+                            html += `<option value="${ct}" ${api.contentType === ct ? 'selected' : ''}>${ct}</option>`;
+                        });
+                        html += `</select>`;
+                        html += `</div>`;
+                        html += `</div>`;
+                        html += `</div>`;
+                    }
+
+                    // Body and Response
+                    html += `<div class="row g-3 mt-1">`;
+                    html += `<div class="col-md-5">`;
+                    html += `<label class="form-label fw-semibold small"><i class="bi bi-file-code"></i> Request body</label>`;
+                    html += `<textarea class="form-control request-textarea" rows="1" id="body-${i}" data-body-index="${i}" placeholder='{\n  "key": "value"\n}'>${bodyValue.replace(/</g, '&lt;')}</textarea>`;
+                    html += `</div>`;
+                    html += `<div class="col-md-7">`;
+                    html += `<div class="d-flex justify-content-between align-items-center mb-2">`;
+                    html += `<label class="form-label fw-semibold small mb-0"><i class="bi bi-braces"></i> Response</label>`;
+                    html += `<button class="btn btn-primary btn-send send-btn shadow-sm" data-index="${i}"><i class="bi bi-send-fill"></i> Send</button>`;
+                    html += `</div>`;
+                    let statusBadge = '';
+                    if (savedResponse.status) {
+                        const statusOk = savedResponse.status >= 200 && savedResponse.status < 300;
+                        statusBadge = `<span class="badge ${statusOk ? 'bg-success' : 'bg-danger'} ms-2">status ${savedResponse.status}</span>`;
+                    }
+                    html += `<pre class="response-pre" id="response-${i}">${savedResponse.text.replace(/</g, '&lt;')} ${statusBadge.replace(/</g, '&lt;')}</pre>`;
+                    html += `</div>`;
+                    html += `</div>`;
+                    html += `</div>`;
+                });
+                
+                html += `</div>`; // Close group content
+                html += `</div>`; // Close group container
+            }
+
+            container.innerHTML = html;
+
+            // Group toggle functionality
+            document.querySelectorAll('[data-group-toggle]').forEach(header => {
+                header.addEventListener('click', (e) => {
+                    if (e.target.closest('.group-eye-btn')) return; // Don't toggle if clicking eye button
+                    
+                    const group = header.dataset.groupToggle;
+                    const content = document.querySelector(`[data-group-content="${group}"]`);
+                    header.classList.toggle('collapsed');
+                    content.classList.toggle('collapsed');
+                    groupCollapsedState[group] = content.classList.contains('collapsed');
+                });
+            });
+
+            // Group eye button
+            document.querySelectorAll('[data-group-eye]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const group = btn.dataset.groupEye;
+                    toggleGroupHide(group);
+                });
+            });
+
+            // Individual eye button
+            document.querySelectorAll('[data-eye-index]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = btn.dataset.eyeIndex;
+                    if (index !== undefined) toggleHideApi(parseInt(index));
+                });
+            });
+
+            // Auto-resize textareas
+            document.querySelectorAll('[data-body-index]').forEach(textarea => {
+                const index = textarea.dataset.bodyIndex;
+                autoResizeTextarea(textarea);
+                
+                let timeout;
+                textarea.addEventListener('input', (e) => {
+                    autoResizeTextarea(e.target);
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        customApis[index].body = e.target.value;
+                        saveApis(customApis);
+                    }, 300);
+                });
+            });
+
+            // Send button
+            document.querySelectorAll('.send-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const index = e.currentTarget.dataset.index;
+                    if (index !== undefined) await sendApiRequest(parseInt(index));
+                });
+            });
+
+            // Auth toggle
+            document.querySelectorAll('[data-toggle-auth]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.currentTarget.dataset.toggleAuth;
+                    if (index !== undefined) toggleAuthPanel(parseInt(index));
+                });
+            });
+
+            // Duplicate button
+            document.querySelectorAll('[data-duplicate-index]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.currentTarget.dataset.duplicateIndex;
+                    if (index !== undefined) duplicateApi(parseInt(index));
+                });
+            });
+
+            // Method select
+            document.querySelectorAll('.method-select').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const index = e.target.dataset.methodIndex;
+                    if (index !== undefined) {
+                        customApis[index].method = e.target.value;
+                        saveApis(customApis);
+                        renderGroups();
+                        renderNav();
+                    }
+                });
+            });
+
+            // Path input
+            document.querySelectorAll('[data-path-index]').forEach(input => {
+                const update = (e) => {
+                    const index = e.target.dataset.pathIndex;
+                    if (index !== undefined) {
+                        const val = e.target.value;
+                        if (val.startsWith('http://') || val.startsWith('https://')) {
+                            customApis[index].fullUrl = val;
+                            delete customApis[index].path;
+                        } else {
+                            customApis[index].path = val;
+                            delete customApis[index].fullUrl;
+                        }
+                        saveApis(customApis);
+                        renderGroups();
+                        renderNav();
+                    }
+                };
+                input.addEventListener('blur', update);
+                input.addEventListener('keypress', (e) => { if (e.key === 'Enter') e.target.blur(); });
+            });
+
+            // Auth type select
+            document.querySelectorAll('.auth-type-select').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const index = e.target.dataset.authType;
+                    if (index !== undefined) {
+                        customApis[index].auth.type = e.target.value;
+                        saveApis(customApis);
+                    }
+                });
+            });
+
+            // Auth token input
+            document.querySelectorAll('[data-auth-token]').forEach(input => {
+                input.addEventListener('blur', (e) => {
+                    const index = e.target.dataset.authToken;
+                    if (index !== undefined) {
+                        customApis[index].auth.token = e.target.value;
+                        saveApis(customApis);
+                    }
+                });
+            });
+
+            // Content type select
+            document.querySelectorAll('.auth-content-type').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const index = e.target.dataset.contentType;
+                    if (index !== undefined) {
+                        customApis[index].contentType = e.target.value;
+                        saveApis(customApis);
+                    }
+                });
+            });
+
+            // Remove btn
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.currentTarget.dataset.removeIndex;
+                    if (index !== undefined) {
+                        customApis.splice(index, 1);
+                        const newMap = new Map();
+                        for (let [k, v] of responseMap.entries()) {
+                            if (k < index) newMap.set(k, v);
+                            else if (k > index) newMap.set(k-1, v);
+                        }
+                        responseMap = newMap;
+                        saveApis(customApis);
+                        renderGroups();
+                        renderNav();
+                    }
+                });
+            });
+        }
+
+        async function sendApiRequest(index) {
+            const api = customApis[index];
+            if (!api) return;
+
+            let url;
+            if (api.fullUrl) url = api.fullUrl;
+            else url = resolveFullUrl(api.path);
+
+            const method = api.method;
+            const responsePre = document.getElementById(`response-${index}`);
+            if (!responsePre) return;
+
+            const bodyTextarea = document.getElementById(`body-${index}`);
+            let bodyValue = bodyTextarea ? bodyTextarea.value : '';
+
+            const headers = { 'Accept': 'application/json, text/plain, */*' };
+            if (api.contentType) headers['Content-Type'] = api.contentType;
+            if (api.auth.type === 'bearer' && api.auth.token) {
+                headers['Authorization'] = `Bearer ${api.auth.token}`;
+            } else if (api.auth.type === 'basic' && api.auth.token) {
+                headers['Authorization'] = `Basic ${btoa(api.auth.token)}`;
+            }
+
+            const fetchOptions = { method, headers };
+
+            if (bodyValue && bodyValue.trim() !== '' && ['POST','PUT','PATCH','DELETE'].includes(method)) {
+                if (api.contentType && api.contentType.includes('application/json') && bodyValue.trim() !== '') {
+                    try { JSON.parse(bodyValue); } 
+                    catch (jsonErr) {
+                        responsePre.innerHTML = `❌ INVALID JSON:\n${jsonErr.message}`;
+                        responseMap.set(index, { text: `❌ INVALID JSON:\n${jsonErr.message}`, status: null });
+                        return;
+                    }
+                }
+                fetchOptions.body = bodyValue;
+            }
+
+            try {
+                responsePre.innerHTML = '⏳ Sending request ...';
+                const start = performance.now();
+                const fetchResponse = await fetch(url, fetchOptions).catch(err => { throw new Error(`Network/CORS: ${err.message}`); });
+                const status = fetchResponse.status;
+                const resContentType = fetchResponse.headers.get('content-type') || '';
+                let responseText;
+                if (resContentType.includes('application/json')) {
+                    try { responseText = JSON.stringify(await fetchResponse.json(), null, 2); } 
+                    catch { responseText = await fetchResponse.text(); }
+                } else {
+                    responseText = await fetchResponse.text();
+                }
+                const timeMs = Math.round(performance.now() - start);
+                const final = `${status >= 200 && status < 300 ? '✅' : '⚠️'} [${status}] ${timeMs}ms\n${responseText}`;
+                responsePre.innerHTML = final.replace(/</g, '&lt;');
+                responseMap.set(index, { text: final, status });
+            } catch (error) {
+                const errMsg = `💥 ERROR: ${error.message}`;
+                responsePre.innerHTML = errMsg.replace(/</g, '&lt;');
+                responseMap.set(index, { text: errMsg, status: null });
+            }
+        }
+
+        function addNewApi() {
+            const name = prompt('Enter endpoint name (e.g., "Logout"):', '🆕 Custom');
+            if (name === null) return;
+            customApis.push({
+                name: name.trim() || 'Custom',
+                method: 'GET',
+                path: '/api/custom',
+                description: 'user defined',
+                body: '',
+                auth: { type: 'none', token: '' },
+                contentType: 'application/json',
+                showAuth: false,
+                group: 'default',
+                hidden: false
+            });
+            saveApis(customApis);
+            renderGroups();
+            renderNav();
+        }
+
+        addApiNavBtn.addEventListener('click', addNewApi);
+        portInput.addEventListener('input', () => { renderGroups(); renderNav(); });
+
+        renderGroups();
+        renderNav();
+    })();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
